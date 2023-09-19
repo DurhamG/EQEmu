@@ -187,6 +187,7 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	cheat_manager.SetClient(this);
 	mMovementManager->AddClient(this);
 	character_id = 0;
+	last_kill = 0;
 	conn_state = NoPacketsReceived;
 	client_data_loaded = false;
 	berserk = false;

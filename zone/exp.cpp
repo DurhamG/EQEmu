@@ -41,6 +41,8 @@ extern WorldServer worldserver;
 
 extern QueryServ* QServ;
 
+const static uint32 MINUTES_PER_LEVEL = 90;
+
 static uint64 ScaleAAXPBasedOnCurrentAATotal(int earnedAA, uint64 add_aaxp)
 {
 	float baseModifier = RuleR(AA, ModernAAScalingStartPercent);
@@ -108,113 +110,67 @@ static uint32 MaxBankedRaidLeadershipPoints(int Level)
 }
 
 uint64 Client::CalcEXP(uint8 consider_level, bool ignore_modifiers) {
-	uint64 in_add_exp = EXP_FORMULA;
-
-	if (XPRate != 0) {
-		in_add_exp = static_cast<uint64>(in_add_exp * (static_cast<float>(XPRate) / 100.0f));
-	}
-
-	if (!ignore_modifiers) {
-		auto total_modifier = 1.0f;
-		auto zone_modifier  = 1.0f;
-
-		if (RuleR(Character, ExpMultiplier) >= 0) {
-			total_modifier *= RuleR(Character, ExpMultiplier);
-		}
-
-		if (zone->newzone_data.zone_exp_multiplier >= 0) {
-			zone_modifier *= zone->newzone_data.zone_exp_multiplier;
-		}
-
-		if (RuleB(Character, UseRaceClassExpBonuses)) {
-			if (
-				GetClass() == WARRIOR ||
-				GetClass() == ROGUE ||
-				GetBaseRace() == HALFLING
-			) {
-				total_modifier *= 1.05;
-			}
-		}
-
-		if (zone->IsHotzone()) {
-			total_modifier += RuleR(Zone, HotZoneBonus);
-		}
-
-		in_add_exp = uint64(float(in_add_exp) * total_modifier * zone_modifier);
-	}
-
-	if (RuleB(Character,UseXPConScaling)) {
-		if (consider_level != 0xFF) {
-			switch (consider_level) {
-				case CON_GRAY:
-					in_add_exp = 0;
-					return 0;
-				case CON_GREEN:
-					in_add_exp = in_add_exp * RuleI(Character, GreenModifier) / 100;
-					break;
-				case CON_LIGHTBLUE:
-					in_add_exp = in_add_exp * RuleI(Character, LightBlueModifier) / 100;
-					break;
-				case CON_BLUE:
-					in_add_exp = in_add_exp * RuleI(Character, BlueModifier) / 100;
-					break;
-				case CON_WHITE:
-					in_add_exp = in_add_exp * RuleI(Character, WhiteModifier) / 100;
-					break;
-				case CON_YELLOW:
-					in_add_exp = in_add_exp * RuleI(Character, YellowModifier) / 100;
-					break;
-				case CON_RED:
-					in_add_exp = in_add_exp * RuleI(Character, RedModifier) / 100;
-					break;
-			}
-		}
-	}
-
-	if (!ignore_modifiers) {
-		if (RuleB(Zone, LevelBasedEXPMods)) {
-			if (zone->level_exp_mod[GetLevel()].ExpMod) {
-				in_add_exp *= zone->level_exp_mod[GetLevel()].ExpMod;
-			}
-		}
-
-		if (RuleR(Character, FinalExpMultiplier) >= 0) {
-			in_add_exp *= RuleR(Character, FinalExpMultiplier);
-		}
-
-		if (RuleB(Character, EnableCharacterEXPMods)) {
-			in_add_exp *= GetEXPModifier(zone->GetZoneID(), zone->GetInstanceVersion());
-		}
-	}
-
-	return in_add_exp;
+	Message(Chat::Yellow, "Is this even called? %d", consider_level);
+	return 3 * 60;
 }
 
-uint64 Client::GetExperienceForKill(Mob *against)
+uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 {
-#ifdef LUA_EQEMU
-	uint64 lua_ret = 0;
-	bool ignoreDefault = false;
-	lua_ret = LuaParser::Instance()->GetExperienceForKill(this, against, ignoreDefault);
-
-	if (ignoreDefault) {
-		return lua_ret;
-	}
-#endif
-
+	// exp_level: 1: 25%, 2: 50%, 3: 100%, 4: 120%
 	if (against && against->IsNPC()) {
-		uint32 level = (uint32)against->GetLevel();
-		uint64 ret = EXP_FORMULA;
+		uint64 exp = 0;
+		if (last_kill == 0) {
+			last_kill = Timer::GetTimeSeconds();
+			exp = 60;
+			exp_level = 3;
+		}
+		else {
+			uint32 new_time = Timer::GetTimeSeconds();
+			exp = new_time - last_kill;
 
-		auto mod = against->GetKillExpMod();
-		if(mod >= 0) {
-			ret *= mod;
-			ret /= 100;
+			exp_level = 3;
+
+			// Bonus experience for killing quickly. Should really only apply to active-time, not regen time.
+			const float bonus_window = 120.0;
+			if (exp < bonus_window) {
+				float bonus = 0.3;
+				// Scale the bonus down after 30 seconds.
+				if (exp > 30) {
+					bonus = bonus * (((bonus_window - 30) - (exp - 30)) / (bonus_window - 30));
+				}
+				exp = exp + exp * bonus;
+				exp_level = 4;
+			}
+
+			last_kill = new_time;
 		}
 
-		return ret;
-	}
+		switch (GetLevelCon(against->GetLevel())) {
+			case CON_GRAY:
+				exp = 0;
+				break;
+			case CON_GREEN:
+				exp = exp * RuleI(Character, GreenModifier) / 100;
+				break;
+			case CON_LIGHTBLUE:
+				exp = exp * RuleI(Character, LightBlueModifier) / 100;
+				break;
+			case CON_BLUE:
+				exp = exp * RuleI(Character, BlueModifier) / 100;
+				break;
+			case CON_WHITE:
+				exp = exp * RuleI(Character, WhiteModifier) / 100;
+				break;
+			case CON_YELLOW:
+				exp = exp * RuleI(Character, YellowModifier) / 100;
+				break;
+			case CON_RED:
+				exp = exp * RuleI(Character, RedModifier) / 100;
+				break;
+		}
 
+		return exp;
+	}
 	return 0;
 }
 
@@ -497,7 +453,7 @@ void Client::CalculateExp(uint64 in_add_exp, uint64 &add_exp, uint64 &add_aaxp, 
 	add_exp = GetEXP() + add_exp;
 }
 
-void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp) {
+void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp, uint8 exp_level) {
 	if (!IsEXPEnabled()) {
 		return;
 	}
@@ -569,10 +525,10 @@ void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp) {
 	}
 
 	// Now update our character's normal and AA xp
-	SetEXP(exp, aaexp, resexp);
+	SetEXP(exp, aaexp, resexp, exp_level);
 }
 
-void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp) {
+void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp, uint8 exp_level) {
 	LogDebug("Attempting to Set Exp for [{}] (XP: [{}], AAXP: [{}], Rez: [{}])", GetCleanName(), set_exp, set_aaxp, isrezzexp ? "true" : "false");
 
 	auto max_AAXP = GetRequiredAAExperience();
@@ -613,6 +569,8 @@ void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp) {
 			}
 		}
 
+		Message(Chat::Experience, "Added: %d, Total: %d, Next level: %d", exp_gained, set_exp, GetEXPForLevel(GetLevel() + 1));
+
 		std::string exp_percent_message = "";
 		if (RuleI(Character, ShowExpValues) >= 2) {
 			if (exp_gained > 0 && aa_exp_gained > 0) exp_percent_message = StringFormat("(%.3f%%, %.3f%%AA)", exp_percent, aa_exp_percent);
@@ -637,7 +595,22 @@ void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp) {
 			else {
 				if (RuleI(Character, ShowExpValues) > 0)
 					Message(Chat::Experience, "You have gained %s experience! %s", exp_amount_message.c_str(), exp_percent_message.c_str());
-				else MessageString(Chat::Experience, GAIN_XP);
+				else {
+					switch (exp_level) {
+					case 1:
+						Message(Chat::Experience, "You gained a little experience.");
+						break;
+					case 2:
+						Message(Chat::Experience, "You gained some experience.");
+						break;
+					case 4:
+						Message(Chat::Experience, "You gained quite a bit of experience!");
+						break;
+					default:
+						MessageString(Chat::Experience, GAIN_XP);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -983,90 +956,29 @@ void Client::SetLevel(uint8 set_level, bool command)
 // Add: You can set the values you want now, client will be always sync :) - Merkur
 uint32 Client::GetEXPForLevel(uint16 check_level)
 {
-#ifdef LUA_EQEMU
-	uint32 lua_ret = 0;
-	bool ignoreDefault = false;
-	lua_ret = LuaParser::Instance()->GetEXPForLevel(this, check_level, ignoreDefault);
-
-	if (ignoreDefault) {
-		return lua_ret;
-	}
-#endif
-
-	uint16 check_levelm1 = check_level-1;
-	float mod;
-	if (check_level < 31)
-		mod = 1.0;
-	else if (check_level < 36)
-		mod = 1.1;
-	else if (check_level < 41)
-		mod = 1.2;
-	else if (check_level < 46)
-		mod = 1.3;
-	else if (check_level < 52)
-		mod = 1.4;
-	else if (check_level < 53)
-		mod = 1.5;
-	else if (check_level < 54)
-		mod = 1.6;
-	else if (check_level < 55)
-		mod = 1.7;
-	else if (check_level < 56)
-		mod = 1.9;
-	else if (check_level < 57)
-		mod = 2.1;
-	else if (check_level < 58)
-		mod = 2.3;
-	else if (check_level < 59)
-		mod = 2.5;
-	else if (check_level < 60)
-		mod = 2.7;
-	else if (check_level < 61)
-		mod = 3.0;
-	else
-		mod = 3.1;
-
-	float base = (check_levelm1)*(check_levelm1)*(check_levelm1);
-
-	mod *= 1000;
-
-	uint32 finalxp = uint32(base * mod);
-
-	if(RuleB(Character,UseOldRaceExpPenalties))
-	{
-		float racemod = 1.0;
-		if(GetBaseRace() == TROLL || GetBaseRace() == IKSAR) {
-			racemod = 1.2;
-		} else if(GetBaseRace() == OGRE) {
-			racemod = 1.15;
-		} else if(GetBaseRace() == BARBARIAN) {
-			racemod = 1.05;
-		} else if(GetBaseRace() == HALFLING) {
-			racemod = 0.95;
+	uint32 minutes = 0;
+	const static float RAMP_OFF_LEVEL = 20;
+	if (check_level <= RAMP_OFF_LEVEL) {
+		// Start at 5 minutes for level 2, then grow towards MINUTES_PER_LEVEL minutes for level 20.
+		for (float i = 1; i < check_level; i++) {
+			minutes = minutes + MINUTES_PER_LEVEL * (i / RAMP_OFF_LEVEL);
 		}
-
-		finalxp = uint64(finalxp * racemod);
+	}
+	else {
+		minutes = (RAMP_OFF_LEVEL - 1) * MINUTES_PER_LEVEL / 2; // Total number of minutes to get to ramp_off.
+		minutes = minutes + (check_level - (RAMP_OFF_LEVEL - 1)) * MINUTES_PER_LEVEL;
+	}
+	
+	// Double the time for 51-59
+	if (check_level > 50) {
+		minutes = minutes + (check_level - 50) * MINUTES_PER_LEVEL;
 	}
 
-	if(RuleB(Character,UseOldClassExpPenalties))
-	{
-		float classmod = 1.0;
-		if(GetClass() == PALADIN || GetClass() == SHADOWKNIGHT || GetClass() == RANGER || GetClass() == BARD) {
-			classmod = 1.4;
-		} else if(GetClass() == MONK) {
-			classmod = 1.2;
-		} else if(GetClass() == WIZARD || GetClass() == ENCHANTER || GetClass() == MAGICIAN || GetClass() == NECROMANCER) {
-			classmod = 1.1;
-		} else if(GetClass() == ROGUE) {
-			classmod = 0.91;
-		} else if(GetClass() == WARRIOR) {
-			classmod = 0.9;
-		}
-
-		finalxp = uint64(finalxp * classmod);
+	// Quadruple time for 60
+	if (check_level == 60) {
+		minutes = minutes + 2 * MINUTES_PER_LEVEL;
 	}
-
-	return finalxp;
+	return minutes * 60;
 }
 
 void Client::AddLevelBasedExp(uint8 exp_percentage, uint8 max_level, bool ignore_mods)

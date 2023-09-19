@@ -618,14 +618,14 @@ public:
 	void AddCrystals(uint32 Radiant, uint32 Ebon);
 	void SendCrystalCounts();
 
-	uint64 GetExperienceForKill(Mob *against);
-	void AddEXP(uint64 in_add_exp, uint8 conlevel = 0xFF, bool resexp = false);
+	uint64 GetExperienceForKill(Mob *against, uint8 &exp_level);
+	void AddEXP(uint64 in_add_exp, uint8 conlevel = 0xFF, bool resexp = false, uint8 exp_level = 3);
 	uint64 CalcEXP(uint8 conlevel = 0xFF, bool ignore_mods = false);
 	void CalculateNormalizedAAExp(uint64 &add_aaxp, uint8 conlevel, bool resexp);
 	void CalculateStandardAAExp(uint64 &add_aaxp, uint8 conlevel, bool resexp);
 	void CalculateLeadershipExp(uint64 &add_exp, uint8 conlevel);
 	void CalculateExp(uint64 in_add_exp, uint64 &add_exp, uint64 &add_aaxp, uint8 conlevel, bool resexp);
-	void SetEXP(uint64 set_exp, uint64 set_aaxp, bool resexp=false);
+	void SetEXP(uint64 set_exp, uint64 set_aaxp, bool resexp=false, uint8 exp_level=3);
 	void AddLevelBasedExp(uint8 exp_percentage, uint8 max_level = 0, bool ignore_mods = false);
 	void SetLeadershipEXP(uint64 group_exp, uint64 raid_exp);
 	void AddLeadershipEXP(uint64 group_exp, uint64 raid_exp);
@@ -1872,6 +1872,7 @@ private:
 	Timer client_scan_npc_aggro_timer;
 	Timer client_zone_wide_full_position_update_timer;
 	Timer tribute_timer;
+	uint32 last_kill;
 
 	Timer proximity_timer;
 	Timer TaskPeriodic_Timer;
