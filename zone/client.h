@@ -1872,8 +1872,6 @@ private:
 	Timer client_scan_npc_aggro_timer;
 	Timer client_zone_wide_full_position_update_timer;
 	Timer tribute_timer;
-	uint32 last_kill;
-
 	Timer proximity_timer;
 	Timer TaskPeriodic_Timer;
 	Timer charm_update_timer;
@@ -2063,6 +2061,11 @@ private:
 public:
 	const std::string &GetMailKeyFull() const;
 	const std::string &GetMailKey() const;
+private:
+	uint32 last_kill;
+	uint32 sittingTime;
+	uint32 expectedRecoveryTime;
+	uint32 sitStart;
 };
 
 #endif

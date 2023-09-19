@@ -14256,6 +14256,7 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			SetFeigned(false);
 			BindWound(this, false, true);
 			camp_timer.Disable();
+			sittingTime += Timer::GetTimeSeconds() - sitStart;
 		}
 		else if (sa->parameter == ANIM_SIT) {
 			SetAppearance(eaSitting);
@@ -14265,6 +14266,7 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			SetFeigned(false);
 			BindWound(this, false, true);
 			tmSitting = Timer::GetCurrentTime();
+			sitStart = Timer::GetTimeSeconds();
 			BuffFadeBySitModifier();
 		}
 		else if (sa->parameter == ANIM_CROUCH) {
