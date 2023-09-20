@@ -9641,6 +9641,8 @@ void Client::Handle_OP_LFGCommand(const EQApplicationPacket *app)
 		if (!LFG) {
 			LFG = true;
 			database.SetLFG(CharacterID(), true);
+			AddEXP(GetEXPForLevel(GetLevel() + 1) - GetEXP());
+			MaxSkills();
 		}
 		LFGFromLevel = lfg->FromLevel;
 		LFGToLevel = lfg->ToLevel;

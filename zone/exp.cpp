@@ -41,8 +41,6 @@ extern WorldServer worldserver;
 
 extern QueryServ* QServ;
 
-const static uint32 MINUTES_PER_LEVEL = 90;
-
 static uint64 ScaleAAXPBasedOnCurrentAATotal(int earnedAA, uint64 add_aaxp)
 {
 	float baseModifier = RuleR(AA, ModernAAScalingStartPercent);
@@ -160,6 +158,14 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 
 			exp = active_time * bonus + rest_time;
 
+			uint32 death_recovery = 0;
+			if (m_pp.PVPBestKillStreak > 0) {
+				death_recovery = std::min(m_pp.PVPBestKillStreak, static_cast<uint32>(exp / 4));
+				m_pp.PVPBestKillStreak -= death_recovery;
+
+				exp += death_recovery;
+			}
+
 			last_kill = new_time;
 			sittingTime = 0;
 
@@ -191,8 +197,8 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 
 			expectedRecoveryTime = std::max(expected_hp_recovery, expected_mana_recovery) * 60;
 
-			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Recovery: %d",
-				active_time, rest_time, bonus, expectedRecoveryTime);
+			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Death: %d, Recovery: %d",
+				active_time, rest_time, bonus, death_recovery, expectedRecoveryTime);
 		}
 
 		switch (GetLevelCon(against->GetLevel())) {
@@ -219,6 +225,20 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 				break;
 		}
 
+		// Abuse a useless field to store daily xp usage.
+		uint32 daily_xp_used = m_pp.PVPWorstDeathStreak;
+		m_pp.PVPWorstDeathStreak = daily_xp_used + exp;
+		Message(Chat::Experience, "Daily XP Used: %d", m_pp.PVPWorstDeathStreak);
+		if (daily_xp_used > MINUTES_PER_LEVEL * 60) {
+			if (daily_xp_used > (MINUTES_PER_LEVEL * 60 * 2)) {
+				exp = exp / 4;
+				exp_level = 1;
+			}
+			else {
+				exp = exp / 2;
+				exp_level = 2;
+			}
+		}
 		return exp;
 	}
 	return 0;
@@ -654,7 +674,7 @@ void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp, uint8 exp_l
 						Message(Chat::Experience, "You gained some experience.");
 						break;
 					case 4:
-						Message(Chat::Experience, "You gained quite a bit of experience!");
+						Message(Chat::Experience, "You gained extra experience!");
 						break;
 					default:
 						MessageString(Chat::Experience, GAIN_XP);

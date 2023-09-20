@@ -89,6 +89,8 @@ namespace EQ
 #define XTARGET_HARDCAP 20
 #define MAX_SPECIALIZED_SKILL 50
 
+#define MINUTES_PER_LEVEL 90
+
 extern Zone* zone;
 extern TaskManager *task_manager;
 

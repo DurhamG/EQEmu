@@ -381,6 +381,16 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	sittingTime = 0;
 	expectedRecoveryTime = 0;
 	sitStart = 0;
+
+	// PVPWorstDeathStreak is abused to store the daily xp used buffer.
+	// Reduce it per hour of inactivity.
+	uint32 inactive_hours = (time(nullptr) - m_pp.PVPWorstDeathStreak) / 3600;
+	if (inactive_hours > 12) {
+		m_pp.PVPWorstDeathStreak = 0;
+	}
+	else {
+		m_pp.PVPWorstDeathStreak -= std::min(m_pp.PVPWorstDeathStreak, (MINUTES_PER_LEVEL / 12) * inactive_hours * 60);
+	}
 }
 
 Client::~Client() {

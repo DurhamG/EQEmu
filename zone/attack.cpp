@@ -1871,40 +1871,8 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 	#3: exp loss and corpse generation
 	*/
 
-	// figure out if they should lose exp
-	if (RuleB(Character, UseDeathExpLossMult)) {
-		float exp_losses[] = { 0.005f, 0.015f, 0.025f, 0.035f, 0.045f, 0.055f, 0.065f, 0.075f, 0.085f, 0.095f, 0.110f };
-		int exp_loss = RuleI(Character, DeathExpLossMultiplier);
-		if (!EQ::ValueWithin(exp_loss, 0, 10)) {
-			exp_loss = 3;
-		}
-
-		auto current_exp_loss = exp_losses[exp_loss];
-
-		exploss = static_cast<int>(static_cast<float>(GetEXP()) * current_exp_loss); //loose % of total XP pending rule (choose 0-10)
-	}
-
-	if (!RuleB(Character, UseDeathExpLossMult)) {
-		exploss = static_cast<int>(GetLevel() * (GetLevel() / 18.0) * 12000);
-	}
-
-	if (RuleB(Zone, LevelBasedEXPMods)) {
-		// Death in levels with xp_mod (such as hell levels) was resulting
-		// in losing more that appropriate since the loss was the same but
-		// getting it back would take way longer.  This makes the death the
-		// same amount of time to recover.  Will also lose more if level is
-		// granting a bonus.
-		exploss *= zone->level_exp_mod[GetLevel()].ExpMod;
-	}
-
-	if (exploss > 0 && RuleB(Character, DeathKeepLevel)) {
-		int32 total_exp = GetEXP();
-		uint32 level_min_exp = GetEXPForLevel(killed_level);
-		int32 level_exp = total_exp - level_min_exp;
-		if (exploss > level_exp) {
-			exploss = level_exp;
-		}
-	}
+	// Lose one yellow bubble of exp.
+	exploss = (GetEXPForLevel(GetLevel() + 1) - GetEXPForLevel(GetLevel())) / 5;
 
 	if ((GetLevel() < RuleI(Character, DeathExpLossLevel)) || (GetLevel() > RuleI(Character, DeathExpLossMaxLevel)) || IsBecomeNPC()) {
 		exploss = 0;
@@ -1932,7 +1900,7 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 	Corpse* new_corpse = nullptr;
 
 	// now we apply the exp loss, unmem their spells, and make a corpse
-	// unless they're a GM (or less than lvl 10
+	// unless they're a GM or less than lvl 10
 	if (!GetGM()) {
 		if (exploss > 0) {
 			int32 newexp = GetEXP();
@@ -1942,6 +1910,10 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 			} else {
 				newexp -= exploss;
 			}
+
+			// Abuse PVPBestKillStreak to record exp loss, so we can give them a bonus to recover it.
+			m_pp.PVPBestKillStreak += exploss;
+
 			SetEXP(newexp, GetAAXP());
 			//m_epp.perAA = 0;	//reset to no AA exp on death.
 		}
