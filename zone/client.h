@@ -257,6 +257,7 @@ public:
 	bool GotoPlayer(std::string player_name);
 	bool GotoPlayerGroup(const std::string& player_name);
 	bool GotoPlayerRaid(const std::string& player_name);
+	bool ConveneOnGroup();
 
 	//abstract virtual function implementations required by base abstract class
 	virtual bool Death(Mob* killerMob, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill);

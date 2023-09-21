@@ -383,13 +383,16 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	sitStart = 0;
 
 	// PVPWorstDeathStreak is abused to store the daily xp used buffer.
-	// Reduce it per hour of inactivity.
+	// PVPCurrentKillStream is abused to store whether the player has used convene today.
 	uint32 inactive_hours = (time(nullptr) - m_pp.PVPWorstDeathStreak) / 3600;
 	if (inactive_hours > 12) {
 		m_pp.PVPWorstDeathStreak = 0;
+		m_pp.PVPCurrentKillStreak = 0;
 	}
 	else {
-		m_pp.PVPWorstDeathStreak -= std::min(m_pp.PVPWorstDeathStreak, (MINUTES_PER_LEVEL / 12) * inactive_hours * 60);
+		// Reduce it per hour of inactivity.
+		m_pp.PVPWorstDeathStreak -= std::min(m_pp.PVPWorstDeathStreak, (MINUTES_PER_LEVEL / 12) * inactive_hours * 60);;
+		m_pp.PVPCurrentKillStreak -= std::min(m_pp.PVPCurrentKillStreak, static_cast<uint32>(1));
 	}
 }
 
@@ -8744,6 +8747,34 @@ bool Client::GotoPlayerGroup(const std::string& player_name)
 	}
 
 	return true;
+}
+
+bool Client::ConveneOnGroup() {
+	if (!GetGroup()) {
+		Message(Chat::Red, "You must have a group to convene.");
+		return false;
+	}
+
+	if (m_pp.PVPCurrentKillStreak > 0) {
+		Message(Chat::Red, "You may only convene once a day.");
+		return false;
+	}
+
+	auto leader_name = GetGroup()->GetLeaderName();
+	if (leader_name) {
+		Message(Chat::Yellow, "Convening with your group leader %s...", leader_name);
+		if (!GotoPlayer(leader_name)) {
+			Message(Chat::Red, "Unable to convene.");
+			return false;
+		}
+
+		m_pp.PVPCurrentKillStreak = 12;
+
+		return true;
+	}
+
+	Message(Chat::Red, "Error during convene.");
+	return false;
 }
 
 bool Client::GotoPlayerRaid(const std::string& player_name)

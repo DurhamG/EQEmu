@@ -101,6 +101,7 @@ int command_init(void)
 		command_add("castspell", "[Spell ID] [Instant (0 = False, 1 = True, Default is 1 if Unused)] - Cast a spell", AccountStatus::Guide, command_castspell) ||
 		command_add("chat", "[Channel ID] [Message] - Send a channel message to all zones", AccountStatus::GMMgmt, command_chat) ||
 		command_add("copycharacter", "[source_char_name] [dest_char_name] [dest_account_name] - Copies character to destination account", AccountStatus::GMImpossible, command_copycharacter) ||
+		command_add("convene", "Teleport to your group leader, once a day", AccountStatus::Player, command_convene) ||
 		command_add("corpse", "Manipulate corpses, use with no arguments for help", AccountStatus::Guide, command_corpse) ||
 		command_add("corpsefix", "Attempts to bring corpses from underneath the ground within close proximity of the player", AccountStatus::Player, command_corpsefix) ||
 		command_add("countitem", "[Item ID] - Counts the specified Item ID in your or your target's inventory", AccountStatus::GMLeadAdmin, command_countitem) ||
@@ -154,7 +155,7 @@ int command_init(void)
 		command_add("list", "[npcs|players|corpses|doors|objects] [search] - Search entities", AccountStatus::ApprenticeGuide, command_list) ||
 		command_add("lootsim", "[npc_type_id] [loottable_id] [iterations] - Runs benchmark simulations using real loot logic to report numbers and data", AccountStatus::GMImpossible, command_lootsim) ||
 		command_add("load_shared_memory", "[shared_memory_name] - Reloads shared memory and uses the input as output", AccountStatus::GMImpossible, command_load_shared_memory) ||
-		command_add("loc", "Print out your or your target's current location and heading", AccountStatus::Player, command_loc) ||
+		command_add("loc", "Print out your or your target's current location and heading", AccountStatus::Guide, command_loc) ||
 		command_add("logs", "Manage anything to do with logs", AccountStatus::GMImpossible, command_logs) ||
 		command_add("makepet", "[Pet Name] - Make a pet", AccountStatus::Guide, command_makepet) ||
 		command_add("memspell", "[Spell ID] [Spell Gem] - Memorize a Spell by ID to the specified Spell Gem for you or your target", AccountStatus::Guide, command_memspell) ||
@@ -162,7 +163,7 @@ int command_init(void)
 		command_add("modifynpcstat", "[Stat] [Value] - Modifies an NPC's stats temporarily.", AccountStatus::GMLeadAdmin, command_modifynpcstat) ||
 		command_add("movechar", "[Character ID|Character Name] [Zone ID|Zone Short Name] - Move an offline character to the specified zone", AccountStatus::Guide, command_movechar) ||
 		command_add("movement", "Various movement commands", AccountStatus::GMMgmt, command_movement) ||
-		command_add("myskills", "Show details about your current skill levels", AccountStatus::Player, command_myskills) ||
+		command_add("myskills", "Show details about your current skill levels", AccountStatus::Guide, command_myskills) ||
 		command_add("mysql", "[Help|Query] [SQL Query] - Mysql CLI, see 'Help' for options.", AccountStatus::GMImpossible, command_mysql) ||
 		command_add("mystats", "Show details about you or your pet", AccountStatus::Guide, command_mystats) ||
 		command_add("npccast", "[targetname/entityid] [spellid] - Causes NPC target to cast spellid on targetname/entityid", AccountStatus::QuestTroupe, command_npccast) ||
@@ -924,3 +925,9 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/zone_instance.cpp"
 #include "gm_commands/zopp.cpp"
 #include "gm_commands/zsave.cpp"
+
+
+void command_convene(Client* c, const Seperator* sep)
+{
+	c->ConveneOnGroup();
+}

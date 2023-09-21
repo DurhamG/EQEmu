@@ -52,6 +52,7 @@ void command_camerashake(Client *c, const Seperator *sep);
 void command_castspell(Client *c, const Seperator *sep);
 void command_chat(Client *c, const Seperator *sep);
 void command_copycharacter(Client *c, const Seperator *sep);
+void command_convene(Client* c, const Seperator* sep);
 void command_corpse(Client *c, const Seperator *sep);
 void command_corpsefix(Client *c, const Seperator *sep);
 void command_countitem(Client *c, const Seperator *sep);
