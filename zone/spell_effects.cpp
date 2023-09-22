@@ -974,7 +974,8 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 						}
 						if(!zone->IsCity())
 						{
-							if(caster != this)
+							// Anyone can bind anywhere after 25.
+							if(caster != this && GetLevel() < 25)
 							{
 								MessageString(Chat::SpellFailure, CANNOT_BIND);
 								break;

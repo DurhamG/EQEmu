@@ -785,7 +785,7 @@ uint32 Client::CalcCurrentWeight()
 	*/
 	// SoD+ client has no weight for coin
 	if (EQ::behavior::StaticLookup(EQ::versions::ConvertClientVersionToMobVersion(ClientVersion()))->CoinHasWeight) {
-		Total += (m_pp.platinum + m_pp.gold + m_pp.silver + m_pp.copper) / 4;
+		Total += (m_pp.platinum + m_pp.gold + m_pp.silver + m_pp.copper) / 8;
 	}
 	float Packrat = (float)spellbonuses.Packrat + (float)aabonuses.Packrat + (float)itembonuses.Packrat;
 	if (Packrat > 0) {
