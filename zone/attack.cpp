@@ -2522,7 +2522,6 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		Raid *kr = entity_list.GetRaidByClient(give_exp_client);
 
 		uint8 exp_level;
-		int64 finalxp = give_exp_client->GetExperienceForKill(this, exp_level);
 
 		// handle task credit on behalf of the killer
 		if (RuleB(TaskSystem, EnableTaskSystem)) {
@@ -2536,6 +2535,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 		if (kr) {
 			if (!IsLdonTreasure && MerchantType == 0) {
+				uint64 finalxp = give_exp_client->GetExperienceForKill(this, exp_level);
 				kr->SplitExp((finalxp), this);
 				if (killer_mob && (kr->IsRaidMember(killer_mob->GetName()) || kr->IsRaidMember(killer_mob->GetUltimateOwner()->GetName())))
 					killer_mob->TrySpellOnKill(killed_level, spell);
@@ -2593,7 +2593,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		}
 		else if (give_exp_client->IsGrouped() && kg != nullptr) {
 			if (!IsLdonTreasure && MerchantType == 0) {
-				kg->SplitExp((finalxp), this);
+				kg->SplitKillExp(this);
 				if (killer_mob && (kg->IsGroupMember(killer_mob->GetName()) || kg->IsGroupMember(killer_mob->GetUltimateOwner()->GetName())))
 					killer_mob->TrySpellOnKill(killed_level, spell);
 			}
@@ -2645,6 +2645,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 				int conlevel = give_exp->GetLevelCon(GetLevel());
 				if (conlevel != CON_GRAY) {
 					if (!GetOwner() || (GetOwner() && !GetOwner()->IsClient())) {
+						uint64 finalxp = give_exp_client->GetExperienceForKill(this, exp_level);
 						give_exp_client->AddEXP((finalxp), conlevel, false, exp_level);
 						if (killer_mob && (killer_mob->GetID() == give_exp_client->GetID() || killer_mob->GetUltimateOwner()->GetID() == give_exp_client->GetID()))
 							killer_mob->TrySpellOnKill(killed_level, spell);

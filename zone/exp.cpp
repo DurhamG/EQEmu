@@ -144,7 +144,7 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 			// Max out how much non-rest time is counted as experience.
 			uint32 active_time = std::min(static_cast<uint32>(3 * 60), (new_time - last_kill) - sittingTime);
 
-			// Bonus experience for killing quickly. Should really only apply to active-time, not regen time.
+			// Bonus experience for killing quickly.
 			float bonus = 1;
 			const float bonus_window = 120.0;
 			if (active_time < bonus_window) {
@@ -157,14 +157,6 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 			}
 
 			exp = active_time * bonus + rest_time;
-
-			uint32 death_recovery = 0;
-			if (m_pp.PVPBestKillStreak > 0) {
-				death_recovery = std::min(m_pp.PVPBestKillStreak, static_cast<uint32>(exp / 4));
-				m_pp.PVPBestKillStreak -= death_recovery;
-
-				exp += death_recovery;
-			}
 
 			last_kill = new_time;
 			sittingTime = 0;
@@ -197,8 +189,8 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 
 			expectedRecoveryTime = std::max(expected_hp_recovery, expected_mana_recovery) * 60;
 
-			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Death: %d, Recovery: %d",
-				active_time, rest_time, bonus, death_recovery, expectedRecoveryTime);
+			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Recovery: %d",
+				active_time, rest_time, bonus, expectedRecoveryTime);
 		}
 
 		switch (GetLevelCon(against->GetLevel())) {
@@ -223,21 +215,6 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 			case CON_RED:
 				exp = exp * RuleI(Character, RedModifier) / 100;
 				break;
-		}
-
-		// Abuse a useless field to store daily xp usage.
-		uint32 daily_xp_used = m_pp.PVPWorstDeathStreak;
-		m_pp.PVPWorstDeathStreak = daily_xp_used + exp;
-		Message(Chat::Experience, "Daily XP Used: %d", m_pp.PVPWorstDeathStreak);
-		if (daily_xp_used > MINUTES_PER_LEVEL * 60) {
-			if (daily_xp_used > (MINUTES_PER_LEVEL * 60 * 2)) {
-				exp = exp / 4;
-				exp_level = 1;
-			}
-			else {
-				exp = exp / 2;
-				exp_level = 2;
-			}
 		}
 		return exp;
 	}
@@ -482,15 +459,6 @@ void Client::CalculateExp(uint64 in_add_exp, uint64 &add_exp, uint64 &add_aaxp, 
 
 		add_exp = uint64(float(add_exp) * totalmod * zemmod);
 
-		//if XP scaling is based on the con of a monster, do that now.
-		if (RuleB(Character, UseXPConScaling))
-		{
-			if (conlevel != 0xFF && !resexp)
-			{
-				add_exp = add_exp * GetConLevelModifierPercent(conlevel);
-			}
-		}
-
 		// Calculate any changes to leadership experience.
 		CalculateLeadershipExp(add_exp, conlevel);
 	}	//end !resexp
@@ -533,6 +501,29 @@ void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp, uint8 exp_le
 
 	uint64 exp = 0;
 	uint64 aaexp = 0;
+
+	if (m_pp.PVPBestKillStreak > 0) {
+		uint32 death_recovery = std::min(m_pp.PVPBestKillStreak, static_cast<uint32>(in_add_exp / 4));
+		m_pp.PVPBestKillStreak -= death_recovery;
+
+		in_add_exp += death_recovery;
+		Message(Chat::Experience, "Death bonus: %d", death_recovery);
+	}
+
+	// Abuse a useless field to store daily xp usage.
+	uint32 daily_xp_used = m_pp.PVPWorstDeathStreak;
+	m_pp.PVPWorstDeathStreak = daily_xp_used + in_add_exp;
+	Message(Chat::Experience, "Daily XP Used: %d", m_pp.PVPWorstDeathStreak);
+	if (daily_xp_used > MINUTES_PER_LEVEL * 60) {
+		if (daily_xp_used > (MINUTES_PER_LEVEL * 60 * 2)) {
+			in_add_exp /= 4;
+			exp_level = 1;
+		}
+		else {
+			in_add_exp /= 2;
+			exp_level = 2;
+		}
+	}
 
 	if (m_epp.perAA < 0 || m_epp.perAA > 100) {
 		m_epp.perAA = 0;    // stop exploit with sanity check
@@ -1153,6 +1144,61 @@ void Group::SplitExp(const uint64 exp, Mob* other) {
 				const uint64 tmp2 = group_experience / member_count;
 				m->CastToClient()->AddEXP(tmp < tmp2 ? tmp : tmp2, consider_level);
 			}
+		}
+	}
+}
+
+void Group::SplitKillExp(Mob* other) {
+	if (other->CastToNPC()->MerchantType != 0) {
+		return;
+	}
+	if (other->GetOwner() && other->GetOwner()->IsClient()) {
+		return;
+	}
+	const auto member_count = GroupCount();
+	if (!member_count) {
+		return;
+	}
+
+	uint64 exp = 0;
+	for (const auto& m : members) {
+		if (m && m->IsClient()) {
+			auto client = m->CastToClient();
+			uint8 exp_level;
+			exp += client->GetExperienceForKill(other, exp_level);
+		}
+	}
+
+	uint8 group_size = GroupCount();
+	exp /= group_size;
+
+	switch (group_size) {
+	case 2:
+		exp *= 1.1;
+		break;
+	case 3:
+		exp *= 1.15;
+		break;
+	case 4:
+		exp *= 1.2;
+		break;
+	case 5:
+		exp *= 1.25;
+		break;
+	case 6:
+		exp *= 1.3;
+		break;
+	default:
+		break;
+	}
+
+	for (const auto& m : members) {
+		if (m && m->IsClient()) {
+			auto client = m->CastToClient();
+			// Re-run the calculation just to get the exp_level.
+			uint8 exp_level;
+			client->GetExperienceForKill(other, exp_level);
+			client->AddEXP(exp, 0xFF, false, exp_level);
 		}
 	}
 }
