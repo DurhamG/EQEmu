@@ -556,6 +556,11 @@ void Client::SendZoneInPackets()
 
 	//No idea why live sends this if even were not in a guild
 	SendGuildMOTD();
+
+	uint32 corpse_count = database.GetCharacterBuriedCorpseCount(CharacterID());
+	if (corpse_count > 0) {
+		Message(Chat::Yellow, "You have %d expired corpses. Use #recover to summon one.", corpse_count);
+	}
 }
 
 void Client::SendLogoutPackets() {

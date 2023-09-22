@@ -8,6 +8,7 @@ void command_summonburiedplayercorpse(Client *c, const Seperator *sep)
 		target = c->GetTarget()->CastToClient();
 	}
 
+	c->Message(Chat::Yellow, "Recovering one corpse...");
 	auto *corpse = database.SummonBuriedCharacterCorpses(
 		target->CharacterID(),
 		target->GetZoneID(),
@@ -19,7 +20,7 @@ void command_summonburiedplayercorpse(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} {} not have any buried corpses.",
+				"{} {} not have any expired corpses.",
 				c->GetTargetDescription(target, TargetDescriptionType::UCYou),
 				c == target ? "do" : "does"
 			).c_str()
