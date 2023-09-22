@@ -1972,6 +1972,10 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 				}
 			}
 
+			if (GetArchetype() != ARCHETYPE_CASTER && GetLevel() >= 15 && GetLevel() < 25) {
+				Message(Chat::Red, "Use #encamp to set up a new home base to return to.");
+			}
+
 			entity_list.AddCorpse(new_corpse, GetID());
 			SetID(0);
 

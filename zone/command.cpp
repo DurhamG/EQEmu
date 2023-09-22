@@ -33,6 +33,7 @@
 #include "npc_scale_manager.h"
 #include "../common/events/player_event_logs.h"
 
+extern Zone* zone;
 extern QueryServ* QServ;
 extern WorldServer worldserver;
 extern TaskManager *task_manager;
@@ -124,6 +125,7 @@ int command_init(void)
 		command_add("emote", "[Name|World|Zone] [type] [message] - Send an emote message by name, to the world, or to your zone (^ separator allows multiple messages to be sent at once)", AccountStatus::QuestTroupe, command_emote) ||
 		command_add("emptyinventory", "Clears your or your target's entire inventory (Equipment, General, Bank, and Shared Bank)", AccountStatus::GMImpossible, command_emptyinventory) ||
 		command_add("enablerecipe", "[Recipe ID] - Enables a Recipe", AccountStatus::QuestTroupe, command_enablerecipe) ||
+		command_add("encamp", "Establish the respawn location for melee players", AccountStatus::Player, command_encamp) ||
 		command_add("entityvariable", "[clear|delete|set|view] - Modify entity variables for yourself or your target", AccountStatus::GMAdmin, command_entityvariable) ||
 		command_add("exptoggle", "[Toggle] - Toggle your or your target's experience gain.", AccountStatus::QuestTroupe, command_exptoggle) ||
 		command_add("faction", "[Find (criteria | all ) | Review (criteria | all) | Reset (id)] - Resets Player's Faction", AccountStatus::QuestTroupe, command_faction) ||
@@ -936,4 +938,35 @@ void command_convene(Client* c, const Seperator* sep)
 void command_recover(Client* c, const Seperator* sep)
 {
 	command_summonburiedplayercorpse(c, sep);
+}
+
+
+
+void command_encamp(Client* c, const Seperator* sep)
+{
+	if (c->GetArchetype() != ARCHETYPE_CASTER) {
+		if (c->GetLevel() >= 15) {
+			if (!zone->CanBind())
+			{
+				c->MessageString(Chat::SpellFailure, CANNOT_BIND);
+				return;
+			}
+
+			// Anyone can bind anywhere after 25.
+			if (!zone->IsCity() && c->GetLevel() < 25)
+			{
+				c->MessageString(Chat::SpellFailure, CANNOT_BIND);
+				return;
+			}
+
+			c->Message(Chat::Yellow, "You set up a new home camp.");
+			c->SetBindPoint();
+		}
+		else {
+			c->Message(Chat::Red, "You must be at least level 15 to set up a new home camp.");
+		}
+	}
+	else {
+		c->Message(Chat::Red, "Casters cannot set up a home camp.");
+	}
 }

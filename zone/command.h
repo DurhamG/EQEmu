@@ -75,6 +75,7 @@ void command_editmassrespawn(Client *c, const Seperator *sep);
 void command_emote(Client *c, const Seperator *sep);
 void command_emptyinventory(Client *c, const Seperator *sep);
 void command_enablerecipe(Client *c, const Seperator *sep);
+void command_encamp(Client* c, const Seperator* sep);
 void command_entityvariable(Client *c, const Seperator *sep);
 void command_exptoggle(Client *c, const Seperator *sep);
 void command_faction(Client *c, const Seperator *sep);

@@ -946,6 +946,16 @@ void Client::SetLevel(uint8 set_level, bool command)
 			);
 			QServ->PlayerLogEvent(Player_Log_Levels, CharacterID(), event_desc);
 		}
+
+		if (GetArchetype() != ARCHETYPE_CASTER) {
+			if (set_level == 15) {
+				Message(Chat::Yellow, "You can now use the #encamp ability to set up a new home base for respawning.");
+			}
+			else if (set_level == 25) {
+				Message(Chat::Yellow, "Your fortitude has improved. You can now #encamp even in the wilderness.");
+			}
+
+		}
 	} else if (set_level < m_pp.level) {
 		int levels_lost = (m_pp.level - set_level);
 
