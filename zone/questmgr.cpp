@@ -984,8 +984,16 @@ void QuestManager::changedeity(int deity_id) {
 
 void QuestManager::exp(int amt) {
 	QuestManagerCurrentQuestVars();
-	if (initiator)
+	if (initiator) {
+		// Quest reward experience in terms of the legacy experience curve.
+		// Rewrite the experience amount to be the same percentage of a level on the new experience curve.
+		uint32 level = initiator->GetLevel();
+		float legacy_exp_for_level = initiator->GetLegacyEXPForLevel(level + 1) - initiator->GetLegacyEXPForLevel(level);
+		float percent_of_level = (float)amt / legacy_exp_for_level;
+		float exp_for_level = initiator->GetEXPForLevel(level + 1) - initiator->GetEXPForLevel(level);
+		amt = percent_of_level * exp_for_level;
 		initiator->AddEXP(amt);
+	}
 }
 
 void QuestManager::level(int newlevel) {

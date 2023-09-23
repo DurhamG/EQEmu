@@ -1663,6 +1663,7 @@ public:
 	void RecordKilledNPCEvent(NPC *n);
 
 	uint32 GetEXPForLevel(uint16 check_level);
+	uint32 GetLegacyEXPForLevel(uint16 check_level);
 protected:
 	friend class Mob;
 	void CalcEdibleBonuses(StatBonuses* newbon);
