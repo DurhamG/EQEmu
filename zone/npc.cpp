@@ -1205,6 +1205,32 @@ bool NPC::SpawnZoneController()
 	return true;
 }
 
+bool NPC::IsUncommonSpawn() {
+	// If the spawn chance is less than 10%...
+	auto chance_results = database.QueryDatabase(fmt::format("select chance from spawnentry where npcID = {} and spawngroupID = {}",
+		NPCTypedata_ours ? NPCTypedata_ours->npc_id : NPCTypedata->npc_id,
+		spawn_group_id
+	));
+	auto chance_row = chance_results.begin();
+	if (chance_results.RowCount() == 1) {
+		auto chance = static_cast<uint32_t>(strtoul(chance_row[0], nullptr, 10));
+		if (chance < 10) {
+			return true;
+		}
+	}
+
+	// Or the respawn timer is longer than 1 hour.
+	auto time_results = database.QueryDatabase(fmt::format("select respawntime from spawn2 where spawngroupID = {}",
+		spawn_group_id
+	));
+	auto time_row = time_results.begin();
+	if (time_results.RowCount() == 1) {
+		auto respawn_time = static_cast<uint32_t>(strtoul(time_row[0], nullptr, 10));
+		return respawn_time > 60*60;
+	}
+	return false;
+}
+
 void NPC::SpawnGridNodeNPC(const glm::vec4 &position, int32 grid_id, int32 grid_number, int32 zoffset) {
 	auto npc_type = new NPCType;
 	memset(npc_type, 0, sizeof(NPCType));

@@ -10,7 +10,7 @@ void command_gearup(Client *c, const Seperator *sep)
 	if (
 		c->GetTarget() &&
 		(
-			(c->GetTarget()->IsClient() && c->GetGM()) ||
+			c->GetTarget()->IsClient() ||
 			c->GetTarget()->IsBot()
 		)
 	) {

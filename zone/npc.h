@@ -491,6 +491,7 @@ public:
 
 	bool IsRaidTarget() const { return raid_target; };
 	bool IsRareSpawn() const { return rare_spawn; }
+	bool IsUncommonSpawn();
 	void ResetHPUpdateTimer() { send_hp_update_timer.Start(); }
 
 	bool IgnoreDespawn() { return ignore_despawn; }

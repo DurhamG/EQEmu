@@ -2702,6 +2702,18 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 		entity_list.RemoveFromAutoXTargets(this);
 
+		// If NPC is rare, add more loot for groups.
+		if (give_exp_client && give_exp_client->IsGrouped() && IsUncommonSpawn()) {
+			auto group = entity_list.GetGroupByClient(give_exp_client);
+			// In a group, add enough loot for everyone.
+			// 1-2 players: 1 batch of loot
+			// 3-4 players: 2 batches
+			// 5-6 players: 3 batches
+			for (int i = 1; i < (group->GroupCount() + 1) / 2; i++) {
+				AddLootTable();
+			}
+		}
+
 		uint32 emoteid = GetEmoteID();
 		corpse = new Corpse(this, &itemlist, GetNPCTypeID(), &NPCTypedata,
 			level > 54 ? RuleI(NPC, MajorNPCCorpseDecayTimeMS)
