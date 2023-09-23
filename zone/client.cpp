@@ -4401,6 +4401,10 @@ bool Client::GroupFollow(Client* inviter) {
 			SendGroupJoinAcknowledge();
 		}
 
+		if (m_pp.PVPCurrentKillStreak == 0) {
+			Message(Chat::Yellow, "You may use #convene to go to your group leader once per day.");
+		}
+
 		// Temporary hack for SoD, as things seem to work quite differently
 		if (inviter->IsClient() && inviter->ClientVersion() >= EQ::versions::ClientVersion::SoD)
 		{
