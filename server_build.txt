@@ -1,0 +1,5 @@
+cmake -G "Visual Studio 15 2017 Win64" -DEQEMU_BUILD_TESTS=ON -DEQEMU_BUILD_LOGIN=ON -DEQEMU_BUILD_ZLIB=ON -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64" -DLUA_LIBRARIES="C:\Users\durham\Code\Everquest\Server\dependencies\lua" -DLUA_INCLUDE_DIR="C:\Users\durham\Code\Everquest\Server\dependencies\lua\include" -DZLIB_LIBRARY="C:\Users\durham\Code\Everquest\Server\dependencies\zlib\lib" -DMariaDB_LIBRARY="C:\Program Files\MariaDB\MariaDB Connector C 64-bit\lib\libmariadb.lib" -DMariaDB_INCLUDE_DIR="C:\Program Files\MariaDB\MariaDB Connector C 64-bit\include" -DLUA_LIBRARY="C:\Users\durham\Code\Everquest\Server\dependencies\lua\lua5.1.lib" ..
+
+
+
+cmake --build .

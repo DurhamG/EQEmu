@@ -1,0 +1,93 @@
+Port to TAKP client
+
+Website
+- Forum
+- Scheduled play time
+- Real-time map
+
+Spell research
+- Put all research spells on vendors. Maybe one vendor each, to force exploration.
+
+
+
+Group experience
+- No exp for inactive party member. Use to discourage AFK leveling someone.
+  - Track last combat and last spell cast. Must be more recent than last_kill.
+
+Grouping
+- Limit convene to nearest N zones if server pop is over 100.
+
+Drop rates
+- Guarantee drop per-N-hours?
+- Raise rate of rare spawns to at least 5%?
+- Reduce max respawn time to 24 hours?
+
+Experience
+- Increase zone multiplier for the most rarely used zones.
+
+Operations
+- Logging
+
+
+Error string 12954 (dot message) missing in eq titanium
+
+
+
+
+DB modifications:
+// Convert to no-drop
+update items set nodrop = 0 where tradeskills = 0;
+
+// Bring back the faydark fog
+update zone set maxclip=800, fog_maxclip=800 where short_name = "gfaydark";
+update zone set maxclip=800, fog_maxclip=800 where short_name = "lfaydark";
+
+// Disable tutorial
+update rule_values set rule_value = 0 where rule_name = "World:EnableTutorialButton";
+
+// Set max level to 60
+update rule_values set rule_value = 60 where rule_name = "Character:MaxLevel";
+
+// Disable bard /melody
+update rule_values set rule_value = false where rule_name = "Character:EnableBardMelody";
+
+// Disable AA's
+update rule_values set rule_value = true where rule_name = "Expansion:UseCurrentExpansionAAOnly";
+
+// Set to Velious
+update rule_values set rule_value = 2 where rule_name = "Expansion:CurrentExpansion";
+update rule_values set rule_value = 3 where rule_name = "World:ExpansionSettings";
+update rule_values set rule_value = false where rule_name = "World:UseClientBasedExpansionSettings";
+update rule_values set rule_value = -1 where rule_name = "World:CharacterSelectExpansionSettings";
+
+// Disable pet last names
+update rule_values set rule_value = false where rule_name = "Pets:ClientPetsUseOwnerNameInLastName";
+
+// Disable return home button
+update rule_values set rule_value = false where rule_name = "World:EnableReturnHomeButton";
+
+// One person per IP
+update rule_values set rule_value = 1 where rule_name = "World:AddMaxClientsPerIP";
+update rule_values set rule_value = true where rule_name = "World:EnableIPExemptions";
+
+// Don't allow others to loot normal mobs. Allow it on raid targets
+update rule_values set rule_value = 600000 where rule_name = "NPC:CorpseUnlockTimer";
+
+// No zone multipliers
+update zone set zone_exp_multiplier = 1;
+
+User commands needed:
+/lootnodrop never
+
+Quest modifications:
+- Remove AA and wayfarer message from quests/global/global_player.[lua|pl]
+
+
+Differences
+- Exp curve based on time
+- #recover
+- #convene
+- #encamp for melee at level 15
+- melee can bind anywhere after 25
+- coins weigh half as much
+- Pets zone with you

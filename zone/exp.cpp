@@ -643,12 +643,7 @@ void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp, uint8 exp_l
 				Message(Chat::Experience, "You regain %s experience from resurrection. %s", exp_amount_message.c_str(), exp_percent_message.c_str());
 			else MessageString(Chat::Experience, REZ_REGAIN);
 		} else {
-			if (membercount > 1) {
-				if (RuleI(Character, ShowExpValues) > 0)
-					Message(Chat::Experience, "You have gained %s party experience! %s", exp_amount_message.c_str(), exp_percent_message.c_str());
-				else MessageString(Chat::Experience, GAIN_GROUPXP);
-			}
-			else if (IsRaidGrouped()) {
+			if (IsRaidGrouped()) {
 				if (RuleI(Character, ShowExpValues) > 0)
 					Message(Chat::Experience, "You have gained %s raid experience! %s", exp_amount_message.c_str(), exp_percent_message.c_str());
 				else MessageString(Chat::Experience, GAIN_RAIDEXP);

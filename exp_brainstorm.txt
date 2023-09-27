@@ -1,0 +1,57 @@
+Solo (bad solo class) - 1 level/2 hours
+Solo (good solo class) - 1 level/1.5 hours
+Group - 1 level/1 hour
+
+
+Solo bad - 1 kill / 10 minutes.
+Solo necro - 1 kills / 4 minutes.
+Group - 1 kill / 2 minutes.
+
+
+ONE LEVEL = 90 MINUTES
+MINUTES_PER_KILL = if ACTIVE_MINUTES_SINCE_LAST_KILL >= 3 {
+    3
+} else {
+    ACTIVE_MINUTES_SINCE_LAST_KILL + REGEN_MINUTES_SINCE_LAST_KILL * 0.50
+}
+
+if last kill is less than 2 minutes ago, exp + 20%
+
+
+Solo
+===
+
+- Must kill within 3 non-regen minutes of previous kill, otherwise reduced xp back to 3 minutes.
+- regen minutes stop counting if mana and health reach above 80%
+- regen minutes caps at minutes needed to reach 80% health/mana from time of last kill. After that, it counts towards non-regen minute cap.
+
+
+Group
+===
+
+- Add everyones expected MINUTES, multiply by group bonus, divide by number of group members.
+
+Group bonus:
+2p = 10%
+3p = 15%
+4p = 20%
+5p = 25%
+6p = 30%
+
+
+
+
+
+Levels 1-10, 30 minutes solo
+Levels 11-50, 2 hours solo, 1 group.
+Levels 51-59, 3 hours solo, 2 group.
+Level 60, 5 hours
+
+After hour-one, exp slows down to 50%. After hour-two, exp slows down to 25%.
+BONUS_USED = 0 minutes
+- Add to BONUS_USED for every kill
+- Every hour, subtract 4 minutes (i.e. 90 minutes/1 level per day)
+- if BONUS_USED > 90: Modify final exp value by 50%
+- if BONUS_USED > 180: Modify final exp value by 75%  (sliding scale, 90-180 => 50-75%)
+
+- Record time and bonus used when saving character. Subtract appropriate amount based on time passed when loading character.
