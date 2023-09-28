@@ -1,4 +1,9 @@
-Port to TAKP client
+Fix forest drakling model, basilisk hatchling in gfay
+Get rid of nexus scion
+Get rid of Melaara Tenwinds message, wayfarers
+Fix zoneline from qeynos hills to north qeynos (and vice versa).
+
+South Karana-> North zone line isn't right. Sometimes.  Maybe two zone lines? Maybe only on zone spinup?
 
 Website
 - Forum
@@ -35,46 +40,223 @@ Error string 12954 (dot message) missing in eq titanium
 
 
 DB modifications:
-// Convert to no-drop
+/* Convert to no-drop */
 update items set nodrop = 0 where tradeskills = 0;
 
-// Bring back the faydark fog
+/* Bring back the faydark fog */
 update zone set maxclip=800, fog_maxclip=800 where short_name = "gfaydark";
 update zone set maxclip=800, fog_maxclip=800 where short_name = "lfaydark";
 
-// Disable tutorial
+/* Disable tutorial */
 update rule_values set rule_value = 0 where rule_name = "World:EnableTutorialButton";
 
-// Set max level to 60
+/* Set max level to 60 */
 update rule_values set rule_value = 60 where rule_name = "Character:MaxLevel";
 
-// Disable bard /melody
+/* Disable bard /melody */
 update rule_values set rule_value = false where rule_name = "Character:EnableBardMelody";
 
-// Disable AA's
+/* Disable AA's */
 update rule_values set rule_value = true where rule_name = "Expansion:UseCurrentExpansionAAOnly";
 
-// Set to Velious
+/* Set to Velious */
 update rule_values set rule_value = 2 where rule_name = "Expansion:CurrentExpansion";
 update rule_values set rule_value = 3 where rule_name = "World:ExpansionSettings";
 update rule_values set rule_value = false where rule_name = "World:UseClientBasedExpansionSettings";
 update rule_values set rule_value = -1 where rule_name = "World:CharacterSelectExpansionSettings";
 
-// Disable pet last names
+/* Disable pet last names */
 update rule_values set rule_value = false where rule_name = "Pets:ClientPetsUseOwnerNameInLastName";
 
-// Disable return home button
+/* Disable return home button */
 update rule_values set rule_value = false where rule_name = "World:EnableReturnHomeButton";
 
-// One person per IP
+/* One person per IP */
 update rule_values set rule_value = 1 where rule_name = "World:AddMaxClientsPerIP";
 update rule_values set rule_value = true where rule_name = "World:EnableIPExemptions";
 
-// Don't allow others to loot normal mobs. Allow it on raid targets
+/* Don't allow others to loot normal mobs. Allow it on raid targets */
 update rule_values set rule_value = 600000 where rule_name = "NPC:CorpseUnlockTimer";
 
-// No zone multipliers
+/* No zone multipliers */
 update zone set zone_exp_multiplier = 1;
+update rule_values set rule_value = 1 where rule_name = "Character:ExpMultiplier";
+
+/* Disable faction amounts */
+update rule_values set rule_value = false where rule_name = 'Client:UseLiveFactionMessage';
+
+/* Revert spell levels back to classic, using alkabor db */
+update eqemu.spells_new, takp.spells_new
+set eqemu.spells_new.classes1 = takp.spells_new.classes1,
+    eqemu.spells_new.classes2 = takp.spells_new.classes2,
+    eqemu.spells_new.classes3 = takp.spells_new.classes3,
+    eqemu.spells_new.classes4 = takp.spells_new.classes4,
+    eqemu.spells_new.classes5 = takp.spells_new.classes5,
+    eqemu.spells_new.classes6 = takp.spells_new.classes6,
+    eqemu.spells_new.classes7 = takp.spells_new.classes7,
+    eqemu.spells_new.classes8 = takp.spells_new.classes8,
+    eqemu.spells_new.classes9 = takp.spells_new.classes9,
+    eqemu.spells_new.classes10 = takp.spells_new.classes10,
+    eqemu.spells_new.classes11 = takp.spells_new.classes11,
+    eqemu.spells_new.classes12 = takp.spells_new.classes12,
+    eqemu.spells_new.classes13 = takp.spells_new.classes13,
+    eqemu.spells_new.classes14 = takp.spells_new.classes14,
+    eqemu.spells_new.classes15 = takp.spells_new.classes15
+where eqemu.spells_new.id = takp.spells_new.id;
+
+/* Remove spells from after PoP */
+update eqemu.spells_new
+set eqemu.spells_new.classes1 = 255,
+    eqemu.spells_new.classes2 = 255,
+    eqemu.spells_new.classes3 = 255,
+    eqemu.spells_new.classes4 = 255,
+    eqemu.spells_new.classes5 = 255,
+    eqemu.spells_new.classes6 = 255,
+    eqemu.spells_new.classes7 = 255,
+    eqemu.spells_new.classes8 = 255,
+    eqemu.spells_new.classes9 = 255,
+    eqemu.spells_new.classes10 = 255,
+    eqemu.spells_new.classes11 = 255,
+    eqemu.spells_new.classes12 = 255,
+    eqemu.spells_new.classes13 = 255,
+    eqemu.spells_new.classes14 = 255,
+    eqemu.spells_new.classes15 = 255
+where eqemu.spells_new.id not in (select takp.spells_new.id from takp.spells_new);
+
+/* Fix zone in points */
+delete from zone_points;
+insert into eqemu.zonepoints (
+    zone, number, y, x, z, heading, target_y, target_x, target_z, target_heading,
+    target_zone_id, client_version_mask)
+select takp.zone_points.zone, takp.zone_points.number, takp.zone_points.y, takp.zone_points.x,
+    takp.zone_points.z, takp.zone_points.heading, takp.zone_points.target_y, takp.zone_points.target_x,
+    takp.zone_points.target_z, takp.zone_points.target_heading, takp.zone_points.target_zone_id,
+    takp.zone_points.client_version_mask from takp.zone_points;
+
+
+/* Import takp spawns */
+delete from spawnentry;
+delete from spawngroup;
+delete from spawn2;
+delete from spawn_events;
+delete from spawn_conditions;
+delete from spawn_condition_values;
+
+insert into eqemu.spawnentry
+    (spawngroupID, npcID, chance)
+select takp.spawnentry.spawngroupID, takp.spawnentry.npcID, takp.spawnentry.chance from takp.spawnentry;
+
+insert into eqemu.spawngroup
+    (id, name, spawn_limit, max_x, min_x, max_y, min_y, delay, mindelay, despawn, despawn_timer, wp_spawns)
+select takp.spawngroup.id, takp.spawngroup.name, takp.spawngroup.spawn_limit, takp.spawngroup.max_x,
+    takp.spawngroup.min_x, takp.spawngroup.max_y, takp.spawngroup.min_y, takp.spawngroup.delay,
+    takp.spawngroup.mindelay, takp.spawngroup.despawn, takp.spawngroup.despawn_timer, takp.spawngroup.wp_spawns
+from takp.spawngroup;
+
+/* Fix the missing dist column */
+update eqemu.spawngroup set dist = LEAST(max_x - min_x, max_y - min_y) / 2;
+
+insert into eqemu.spawn2
+    (id, spawngroupID, zone, x, y, z, heading, respawntime, variance, pathgrid, _condition, cond_value,
+     enabled, animation)
+select takp.spawn2.id, takp.spawn2.spawngroupID, takp.spawn2.zone, takp.spawn2.x, takp.spawn2.y,
+    takp.spawn2.z, takp.spawn2.heading, takp.spawn2.respawntime, takp.spawn2.variance, takp.spawn2.pathgrid,
+    takp.spawn2._condition, takp.spawn2.cond_value, takp.spawn2.enabled, takp.spawn2.animation
+from takp.spawn2;
+
+insert into spawn_events select * from takp.spawn_events;
+insert into spawn_conditions select * from takp.spawn_conditions;
+insert into spawn_condition_values select
+    takp.spawn_condition_values.id, takp.spawn_condition_values.value, takp.spawn_condition_values.zone, 0
+from takp.spawn_condition_values;
+
+
+
+/* Import takp npc types */
+update takp.npc_types set takp.npc_types.armtexture=0 where takp.npc_types.armtexture=255;
+update takp.npc_types set takp.npc_types.bracertexture=0 where takp.npc_types.bracertexture=255;
+update takp.npc_types set takp.npc_types.handtexture=0 where takp.npc_types.handtexture=255;
+update takp.npc_types set takp.npc_types.legtexture=0 where takp.npc_types.legtexture=255;
+update takp.npc_types set takp.npc_types.feettexture=0 where takp.npc_types.feettexture=255;
+
+delete from npc_types;
+insert into npc_types
+    (id, name, lastname, level, race, class, bodytype, hp, mana, gender, texture, helmtexture, size,
+    combat_hp_regen, combat_mana_regen, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
+    npc_faction_id, mindmg, maxdmg, attack_count, special_abilities, aggroradius, assistradius, face,
+    luclin_hairstyle, luclin_haircolor, luclin_eyecolor, luclin_eyecolor2, luclin_beardcolor, luclin_beard,
+    armortint_id, armortint_red, armortint_green, armortint_blue, d_melee_texture1, d_melee_texture2,
+    prim_melee_type, sec_melee_type, ranged_type, runspeed, MR, CR, DR, FR, PR, see_invis, see_invis_undead,
+    qglobal, AC, npc_aggro, spawn_limit, attack_delay, STR, STA, DEX, AGI, _INT, WIS, CHA, see_hide,
+    see_improved_hide, ATK, Accuracy, slow_mitigation, maxlevel, scalerate, private_corpse, unique_spawn_by_name,
+    underwater, isquest, emoteid, spellscale, healscale, raid_target, armtexture, bracertexture,
+    handtexture, legtexture, feettexture, light, walkspeed,
+    ignore_despawn, avoidance, exp_mod, stuck_behavior,
+    flymode)
+select id, name, lastname, level, race, class, bodytype, hp, mana, gender, texture, helmtexture, size,
+    hp_regen_rate, mana_regen_rate, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
+    npc_faction_id, mindmg, maxdmg, attack_count, special_abilities, aggroradius, assistradius, face,
+    luclin_hairstyle, luclin_haircolor, luclin_eyecolor, luclin_eyecolor2, luclin_beardcolor, luclin_beard,
+    armortint_id, armortint_red, armortint_green, armortint_blue, d_melee_texture1, d_melee_texture2,
+    prim_melee_type, sec_melee_type, ranged_type, runspeed, MR, CR, DR, FR, PR, see_invis, see_invis_undead,
+    qglobal, AC, npc_aggro, spawn_limit, attack_delay, STR, STA, DEX, AGI, _INT, WIS, CHA, see_sneak,
+    see_improved_hide, ATK, Accuracy, slow_mitigation, maxlevel, scalerate, private_corpse, unique_spawn_by_name,
+    underwater, isquest, emoteid, spellscale, healscale, raid_target, armtexture, bracertexture,
+    handtexture, legtexture, feettexture, light, walkspeed, ignore_despawn, avoidance, exp_pct,
+    stuck_behavior, flymode
+from takp.npc_types;
+
+/* Import loot */
+delete from lootdrop;
+delete from loottable;
+delete from lootdrop_entries;
+delete from loottable_entries;
+
+insert into lootdrop (id, name) select * from takp.lootdrop;
+insert into loottable (id, name, mincash, maxcash, avgcoin, done) select * from takp.loottable;
+insert into loottable_entries (loottable_id, lootdrop_id, multiplier, droplimit, mindrop, probability)
+select takp.loottable_entries.loottable_id, takp.loottable_entries.lootdrop_id,
+    takp.loottable_entries.multiplier, takp.loottable_entries.droplimit, takp.loottable_entries.mindrop,
+    takp.loottable_entries.probability from takp.loottable_entries;
+insert into lootdrop_entries (lootdrop_id, item_id, item_charges, equip_item, chance, disabled_chance,
+    multiplier)
+select takp.lootdrop_entries.lootdrop_id, takp.lootdrop_entries.item_id, takp.lootdrop_entries.item_charges,
+     takp.lootdrop_entries.equip_item, takp.lootdrop_entries.chance, takp.lootdrop_entries.disabled_chance,
+     takp.lootdrop_entries.multiplier from takp.lootdrop_entries;
+
+/* Remove AA's */
+delete from aa_ability;
+
+/* Import pathing */
+delete from grid;
+delete from grid_entries;
+insert into grid (id, zoneid, type, type2) select * from takp.grid;
+insert into grid_entries (gridid, zoneid, number, x, y, z, heading, pause, centerpoint) select * from grid_entries;
+
+/* NPC Spells */
+delete from npc_spells;
+delete from npc_spells_effects;
+delete from npc_spells_effects_entries;
+delete from npc_spells_entries;
+
+insert into npc_spells select * from takp.npc_spells;
+insert into npc_spells_effects select * from takp.npc_spells_effects;
+insert into npc_spells_effects_entries select * from takp.npc_spells_effects_entries;
+insert into npc_spells_entries (id, npc_spells_id, spellid, type, minlevel, maxlevel, manacost, recast_delay, priority, resist_adjust)
+select * from takp.npc_spells_entries;
+
+/* Faction */
+delete from npc_faction;
+delete from npc_faction_entries;
+delete from faction_list;
+delete from faction_list_mod;
+insert into npc_faction select * from takp.npc_faction;
+insert into npc_faction_entries select npc_faction_id, faction_id, value, npc_value, temp from takp.npc_faction_entries;
+insert into faction_list select id, name, base from takp.faction_list;
+insert into faction_list_mod select * from takp.faction_list_mod;
+
+
+
 
 User commands needed:
 /lootnodrop never
@@ -89,5 +271,5 @@ Differences
 - #convene
 - #encamp for melee at level 15
 - melee can bind anywhere after 25
-- coins weigh half as much
+- coins weigh less
 - Pets zone with you
