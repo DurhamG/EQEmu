@@ -81,51 +81,53 @@ update rule_values set rule_value = 600000 where rule_name = "NPC:CorpseUnlockTi
 /* No zone multipliers */
 update zone set zone_exp_multiplier = 1;
 update rule_values set rule_value = 1 where rule_name = "Character:ExpMultiplier";
+update rule_values set rule_value = false where rule_name = "Zone:LevelBasedEXPMods";
+update rule_values set rule_value = true where rule_name = "Character:UseOldConSystem";
 
 /* Disable faction amounts */
 update rule_values set rule_value = false where rule_name = 'Client:UseLiveFactionMessage';
 
 /* Revert spell levels back to classic, using alkabor db */
-update eqemu.spells_new, takp.spells_new
-set eqemu.spells_new.classes1 = takp.spells_new.classes1,
-    eqemu.spells_new.classes2 = takp.spells_new.classes2,
-    eqemu.spells_new.classes3 = takp.spells_new.classes3,
-    eqemu.spells_new.classes4 = takp.spells_new.classes4,
-    eqemu.spells_new.classes5 = takp.spells_new.classes5,
-    eqemu.spells_new.classes6 = takp.spells_new.classes6,
-    eqemu.spells_new.classes7 = takp.spells_new.classes7,
-    eqemu.spells_new.classes8 = takp.spells_new.classes8,
-    eqemu.spells_new.classes9 = takp.spells_new.classes9,
-    eqemu.spells_new.classes10 = takp.spells_new.classes10,
-    eqemu.spells_new.classes11 = takp.spells_new.classes11,
-    eqemu.spells_new.classes12 = takp.spells_new.classes12,
-    eqemu.spells_new.classes13 = takp.spells_new.classes13,
-    eqemu.spells_new.classes14 = takp.spells_new.classes14,
-    eqemu.spells_new.classes15 = takp.spells_new.classes15
-where eqemu.spells_new.id = takp.spells_new.id;
+update spells_new, takp.spells_new
+set spells_new.classes1 = takp.spells_new.classes1,
+    spells_new.classes2 = takp.spells_new.classes2,
+    spells_new.classes3 = takp.spells_new.classes3,
+    spells_new.classes4 = takp.spells_new.classes4,
+    spells_new.classes5 = takp.spells_new.classes5,
+    spells_new.classes6 = takp.spells_new.classes6,
+    spells_new.classes7 = takp.spells_new.classes7,
+    spells_new.classes8 = takp.spells_new.classes8,
+    spells_new.classes9 = takp.spells_new.classes9,
+    spells_new.classes10 = takp.spells_new.classes10,
+    spells_new.classes11 = takp.spells_new.classes11,
+    spells_new.classes12 = takp.spells_new.classes12,
+    spells_new.classes13 = takp.spells_new.classes13,
+    spells_new.classes14 = takp.spells_new.classes14,
+    spells_new.classes15 = takp.spells_new.classes15
+where spells_new.id = takp.spells_new.id;
 
 /* Remove spells from after PoP */
-update eqemu.spells_new
-set eqemu.spells_new.classes1 = 255,
-    eqemu.spells_new.classes2 = 255,
-    eqemu.spells_new.classes3 = 255,
-    eqemu.spells_new.classes4 = 255,
-    eqemu.spells_new.classes5 = 255,
-    eqemu.spells_new.classes6 = 255,
-    eqemu.spells_new.classes7 = 255,
-    eqemu.spells_new.classes8 = 255,
-    eqemu.spells_new.classes9 = 255,
-    eqemu.spells_new.classes10 = 255,
-    eqemu.spells_new.classes11 = 255,
-    eqemu.spells_new.classes12 = 255,
-    eqemu.spells_new.classes13 = 255,
-    eqemu.spells_new.classes14 = 255,
-    eqemu.spells_new.classes15 = 255
-where eqemu.spells_new.id not in (select takp.spells_new.id from takp.spells_new);
+update spells_new
+set spells_new.classes1 = 255,
+    spells_new.classes2 = 255,
+    spells_new.classes3 = 255,
+    spells_new.classes4 = 255,
+    spells_new.classes5 = 255,
+    spells_new.classes6 = 255,
+    spells_new.classes7 = 255,
+    spells_new.classes8 = 255,
+    spells_new.classes9 = 255,
+    spells_new.classes10 = 255,
+    spells_new.classes11 = 255,
+    spells_new.classes12 = 255,
+    spells_new.classes13 = 255,
+    spells_new.classes14 = 255,
+    spells_new.classes15 = 255
+where spells_new.id not in (select takp.spells_new.id from takp.spells_new);
 
 /* Fix zone in points */
 delete from zone_points;
-insert into eqemu.zonepoints (
+insert into zonepoints (
     zone, number, y, x, z, heading, target_y, target_x, target_z, target_heading,
     target_zone_id, client_version_mask)
 select takp.zone_points.zone, takp.zone_points.number, takp.zone_points.y, takp.zone_points.x,
@@ -142,11 +144,11 @@ delete from spawn_events;
 delete from spawn_conditions;
 delete from spawn_condition_values;
 
-insert into eqemu.spawnentry
+insert into spawnentry
     (spawngroupID, npcID, chance)
 select takp.spawnentry.spawngroupID, takp.spawnentry.npcID, takp.spawnentry.chance from takp.spawnentry;
 
-insert into eqemu.spawngroup
+insert into spawngroup
     (id, name, spawn_limit, max_x, min_x, max_y, min_y, delay, mindelay, despawn, despawn_timer, wp_spawns)
 select takp.spawngroup.id, takp.spawngroup.name, takp.spawngroup.spawn_limit, takp.spawngroup.max_x,
     takp.spawngroup.min_x, takp.spawngroup.max_y, takp.spawngroup.min_y, takp.spawngroup.delay,
@@ -154,9 +156,9 @@ select takp.spawngroup.id, takp.spawngroup.name, takp.spawngroup.spawn_limit, ta
 from takp.spawngroup;
 
 /* Fix the missing dist column */
-update eqemu.spawngroup set dist = LEAST(max_x - min_x, max_y - min_y) / 2;
+update spawngroup set dist = LEAST(max_x - min_x, max_y - min_y) / 2;
 
-insert into eqemu.spawn2
+insert into spawn2
     (id, spawngroupID, zone, x, y, z, heading, respawntime, variance, pathgrid, _condition, cond_value,
      enabled, animation)
 select takp.spawn2.id, takp.spawn2.spawngroupID, takp.spawn2.zone, takp.spawn2.x, takp.spawn2.y,
@@ -182,7 +184,7 @@ update takp.npc_types set takp.npc_types.feettexture=0 where takp.npc_types.feet
 delete from npc_types;
 insert into npc_types
     (id, name, lastname, level, race, class, bodytype, hp, mana, gender, texture, helmtexture, size,
-    combat_hp_regen, combat_mana_regen, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
+    hp_regen_rate, mana_regen_rate, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
     npc_faction_id, mindmg, maxdmg, attack_count, special_abilities, aggroradius, assistradius, face,
     luclin_hairstyle, luclin_haircolor, luclin_eyecolor, luclin_eyecolor2, luclin_beardcolor, luclin_beard,
     armortint_id, armortint_red, armortint_green, armortint_blue, d_melee_texture1, d_melee_texture2,
@@ -194,7 +196,7 @@ insert into npc_types
     ignore_despawn, avoidance, exp_mod, stuck_behavior,
     flymode)
 select id, name, lastname, level, race, class, bodytype, hp, mana, gender, texture, helmtexture, size,
-    hp_regen_rate, mana_regen_rate, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
+    combat_hp_regen, combat_mana_regen, loottable_id, merchant_id, npc_spells_id, npc_spells_effects_id,
     npc_faction_id, mindmg, maxdmg, attack_count, special_abilities, aggroradius, assistradius, face,
     luclin_hairstyle, luclin_haircolor, luclin_eyecolor, luclin_eyecolor2, luclin_beardcolor, luclin_beard,
     armortint_id, armortint_red, armortint_green, armortint_blue, d_melee_texture1, d_melee_texture2,
@@ -231,7 +233,7 @@ delete from aa_ability;
 delete from grid;
 delete from grid_entries;
 insert into grid (id, zoneid, type, type2) select * from takp.grid;
-insert into grid_entries (gridid, zoneid, number, x, y, z, heading, pause, centerpoint) select * from grid_entries;
+insert into grid_entries (gridid, zoneid, number, x, y, z, heading, pause, centerpoint) select * from takp.grid_entries;
 
 /* NPC Spells */
 delete from npc_spells;

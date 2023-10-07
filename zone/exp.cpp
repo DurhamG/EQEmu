@@ -114,12 +114,18 @@ uint64 Client::CalcEXP(uint8 consider_level, bool ignore_modifiers) {
 
 uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 {
-	// exp_level: 1: 25%, 2: 50%, 3: 100%, 4: 120%
+	// Don't reset any timers if we kill a gray con.
+	if (GetLevelCon(against->GetLevel()) == CON_GRAY) {
+		return 0;
+	}
+
+	// exp_level: 1: 25%, 2: 50%, 3: 100%, 4: 130%
 	if (against && against->IsNPC()) {
 		uint64 exp = 0;
 		if (last_kill == 0) {
 			last_kill = Timer::GetTimeSeconds();
 			sittingTime = 0;
+			sitStart = last_kill;
 
 			// Roughly the time it takes to log out and back in.
 			exp = 60;
@@ -131,20 +137,32 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 
 			uint32 new_time = Timer::GetTimeSeconds();
 
-			// Sitting to regen only counts as 75% time.
-			uint32 rest_time = sittingTime * 0.75;
-			// But if you sit too long (with a little buffer), we don't count the rest at all.
-			if (sittingTime > expectedRecoveryTime * 1.2) {
-				rest_time = 0;
-			}
+			uint32 passed_time = new_time - last_kill;
 
 			Message(Chat::Experience, "Passed: %d, Active: %d, Sitting: %d",
-				new_time - last_kill, new_time - last_kill - sittingTime, sittingTime);
+				passed_time, passed_time - sittingTime, sittingTime);
 
 			// Max out how much non-rest time is counted as experience.
-			uint32 active_time = std::min(static_cast<uint32>(3 * 60), (new_time - last_kill) - sittingTime);
+			uint32 max_active_time = 3 * 60;
+			uint32 active_time = std::min(max_active_time, passed_time - sittingTime);
 
-			// Bonus experience for killing quickly.
+			// Limit rest time to the expected recovery time. If we exceed the expected recovery time,
+			// allow using any remaining active time towards the recovery limit. This helps in cases like
+			// the necromancer where a large part of an active fight is spent sitting.
+			uint32 rest_time = sittingTime;
+			uint32 recovery_limit = expectedRecoveryTime + (max_active_time - active_time);
+			// But if you sit too long, lose your rest time and any excess time gets counted as partially active.
+			if (sittingTime > recovery_limit) {
+				rest_time = 0;
+				// We increment active_time here instead of setting rest_time because active_time counts towards the
+				// bonus window, and we don't want to reward a bonus to people who sit for too long.
+				active_time += (max_active_time - active_time) * 0.75;
+			}
+
+			// Sitting to regen only counts as 75% time.
+			rest_time = rest_time * 0.75;
+
+			// Bonus experience for killing quickly and not resting too much.
 			float bonus = 1;
 			const float bonus_window = 120.0;
 			if (active_time < bonus_window) {
@@ -156,42 +174,47 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 				exp_level = 4;
 			}
 
-			exp = active_time * bonus + rest_time;
+			exp = (active_time + rest_time) * bonus;
 
 			last_kill = new_time;
 			sittingTime = 0;
+			sitStart = last_kill;
 
-			uint32 expected_hp_recovery = 0;
-			uint32 current_hp = GetHPRatio();
-			if (current_hp < 20) {
-				expected_hp_recovery = 4;
-			} else if (current_hp < 40) {
-				expected_hp_recovery = 3;
-			} else if (current_hp < 60) {
-				expected_hp_recovery = 2;
-			} else if (current_hp < 80) {
-				expected_hp_recovery = 1;
-			}
-			uint32 expected_mana_recovery = 0;
-			uint32 current_mana = GetManaRatio();
-			if (current_mana < 20) {
-				expected_mana_recovery = 4;
-			}
-			else if (current_mana < 40) {
-				expected_mana_recovery = 3;
-			}
-			else if (current_mana < 60) {
-				expected_mana_recovery = 2;
-			}
-			else if (current_mana < 80) {
-				expected_mana_recovery = 1;
-			}
-
-			expectedRecoveryTime = std::max(expected_hp_recovery, expected_mana_recovery) * 60;
-
-			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Recovery: %d",
-				active_time, rest_time, bonus, expectedRecoveryTime);
+			Message(Chat::Experience, "Active XP: %d, Rest XP: %d, Bonus: %.2f, Total: %d", active_time, rest_time, bonus, exp);
 		}
+
+		uint32 expected_hp_recovery = 0;
+		uint32 current_hp = GetHPRatio();
+		if (current_hp < 20) {
+			expected_hp_recovery = 4;
+		}
+		else if (current_hp < 40) {
+			expected_hp_recovery = 3;
+		}
+		else if (current_hp < 60) {
+			expected_hp_recovery = 2;
+		}
+		else if (current_hp < 80) {
+			expected_hp_recovery = 1;
+		}
+		uint32 expected_mana_recovery = 0;
+		uint32 current_mana = GetManaRatio();
+		if (current_mana < 20) {
+			expected_mana_recovery = 4;
+		}
+		else if (current_mana < 40) {
+			expected_mana_recovery = 3;
+		}
+		else if (current_mana < 60) {
+			expected_mana_recovery = 2;
+		}
+		else if (current_mana < 80) {
+			expected_mana_recovery = 1;
+		}
+
+		expectedRecoveryTime = std::max(expected_hp_recovery, expected_mana_recovery) * 60;
+
+		Message(Chat::Experience, "Recovery: %d", expectedRecoveryTime);
 
 		switch (GetLevelCon(against->GetLevel())) {
 			case CON_GRAY:
