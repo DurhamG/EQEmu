@@ -139,6 +139,10 @@ uint64 Client::GetExperienceForKill(Mob *against, uint8 &exp_level)
 
 			uint32 passed_time = new_time - last_kill;
 
+			if (IsSitting()) {
+				sittingTime += Timer::GetTimeSeconds() - sitStart;
+			}
+
 			Message(Chat::Experience, "Passed: %d, Active: %d, Sitting: %d",
 				passed_time, passed_time - sittingTime, sittingTime);
 
@@ -525,14 +529,6 @@ void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp, uint8 exp_le
 	uint64 exp = 0;
 	uint64 aaexp = 0;
 
-	if (m_pp.PVPBestKillStreak > 0) {
-		uint32 death_recovery = std::min(m_pp.PVPBestKillStreak, static_cast<uint32>(in_add_exp / 4));
-		m_pp.PVPBestKillStreak -= death_recovery;
-
-		in_add_exp += death_recovery;
-		Message(Chat::Experience, "Death bonus: %d", death_recovery);
-	}
-
 	// Abuse a useless field to store daily xp usage.
 	uint32 daily_xp_used = m_pp.PVPWorstDeathStreak;
 	m_pp.PVPWorstDeathStreak = daily_xp_used + in_add_exp;
@@ -546,6 +542,21 @@ void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp, uint8 exp_le
 			in_add_exp /= 2;
 			exp_level = 2;
 		}
+	}
+
+	// Do this after the daily xp adjustment, so we reduce the death recovery buffer by the daily-xp-penalized amount.
+	if (m_pp.PVPBestKillStreak > 0) {
+		uint32 one_death = (GetEXPForLevel(GetLevel() + 1) - GetEXPForLevel(GetLevel())) / 5;
+		uint32 number_of_deaths = (m_pp.PVPBestKillStreak / one_death) + 1;
+
+		// The more you've died, the higher the bonus. Up to 100%.
+		uint32 death_recovery = std::min(static_cast<uint32>(4), number_of_deaths) * (in_add_exp / 4);
+
+		death_recovery = std::min(m_pp.PVPBestKillStreak, death_recovery);
+		m_pp.PVPBestKillStreak -= death_recovery;
+
+		in_add_exp += death_recovery;
+		Message(Chat::Experience, "Death bonus: %d for %d deaths", death_recovery, number_of_deaths);
 	}
 
 	if (m_epp.perAA < 0 || m_epp.perAA > 100) {

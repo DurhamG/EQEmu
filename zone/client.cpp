@@ -381,19 +381,6 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	sittingTime = 0;
 	expectedRecoveryTime = 0;
 	sitStart = 0;
-
-	// PVPWorstDeathStreak is abused to store the daily xp used buffer.
-	// PVPCurrentKillStream is abused to store whether the player has used convene today.
-	uint32 inactive_hours = (time(nullptr) - m_pp.PVPWorstDeathStreak) / 3600;
-	if (inactive_hours > 12) {
-		m_pp.PVPWorstDeathStreak = 0;
-		m_pp.PVPCurrentKillStreak = 0;
-	}
-	else {
-		// Reduce it per hour of inactivity.
-		m_pp.PVPWorstDeathStreak -= std::min(m_pp.PVPWorstDeathStreak, (MINUTES_PER_LEVEL / 12) * inactive_hours * 60);;
-		m_pp.PVPCurrentKillStreak -= std::min(m_pp.PVPCurrentKillStreak, static_cast<uint32>(1));
-	}
 }
 
 Client::~Client() {
