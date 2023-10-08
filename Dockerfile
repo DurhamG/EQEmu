@@ -27,8 +27,4 @@ RUN apt-get -y install libsodium-dev
 RUN apt-get -y install libjson-perl
 RUN apt-get -y install libssl-dev
 
-COPY . source/
-RUN mkdir build
-WORKDIR /build
-RUN cmake -G "Unix Makefiles" -DEQEMU_BUILD_LOGIN=ON -DCMAKE_BUILD_TYPE=Release ../source
-RUN make -j 4
+COPY . /source
