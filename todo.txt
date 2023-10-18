@@ -1,17 +1,8 @@
-Fix forest drakling model, basilisk hatchling in gfay
-Get rid of nexus scion
-Get rid of Melaara Tenwinds message, wayfarers
-Fix zoneline from qeynos hills to north qeynos (and vice versa).
-
-South Karana-> North zone line isn't right. Sometimes.  Maybe two zone lines? Maybe only on zone spinup?
+Wayfarer messages - rathe mountains
+Import translocators from PEQ
 
 Website
-- Forum
-- Scheduled play time
 - Real-time map
-
-Spell research
-- Put all research spells on vendors. Maybe one vendor each, to force exploration.
 
 
 
@@ -33,8 +24,6 @@ Experience
 Operations
 - Logging
 
-
-Error string 12954 (dot message) missing in eq titanium
 
 
 
@@ -125,15 +114,19 @@ set spells_new.classes1 = 255,
     spells_new.classes15 = 255
 where spells_new.id not in (select takp.spells_new.id from takp.spells_new);
 
-/* Fix zone in points */
-delete from zone_points;
-insert into zonepoints (
+/* Fix lavastorm, nektulous, and arena zone in points */
+delete from zone_points where zone = 'lavastorm' or zone = 'nektulos' or zone = 'arena'
+    or target_zone_id = 27 or target_zone_id = 25 or target_zone_id = 77;
+
+insert into zone_points (
     zone, number, y, x, z, heading, target_y, target_x, target_z, target_heading,
     target_zone_id, client_version_mask)
 select takp.zone_points.zone, takp.zone_points.number, takp.zone_points.y, takp.zone_points.x,
     takp.zone_points.z, takp.zone_points.heading, takp.zone_points.target_y, takp.zone_points.target_x,
     takp.zone_points.target_z, takp.zone_points.target_heading, takp.zone_points.target_zone_id,
-    takp.zone_points.client_version_mask from takp.zone_points;
+    takp.zone_points.client_version_mask from takp.zone_points
+where takp.zone_points.zone = 'lavastorm' or takp.zone_points.zone = 'nektulos' or takp.zone_points.zone = 'arena'
+    or takp.zone_points.target_zone_id = 27 or takp.zone_points.target_zone_id = 25 or takp.zone_points.target_zone_id = 77;
 
 
 /* Import takp spawns */
@@ -257,8 +250,30 @@ insert into npc_faction_entries select npc_faction_id, faction_id, value, npc_va
 insert into faction_list select id, name, base from takp.faction_list;
 insert into faction_list_mod select * from takp.faction_list_mod;
 
+/* Remove soul binders */
+update spawn2 set min_expansion = 3 where spawngroupID in
+    (select spawngroupID from spawnentry where npcID in
+        (select id from npc_types where name like "Soulbinder%"));
+
+/* Remove nexus portals (Nexus Scion and A Mystic Voice) */
+update spawn2 set min_expansion = 3 where spawngroupID in (
+    select spawngroupID from spawnentry where npcID in (13060, 38065, 54177, 86098, 118086, 13114, 38163, 54301, 86153, 118165)
+);
+
+cd quests/
+find -name A_Mystic_Voice.lua -delete
+find -name A_Mystic_Voice.pl -delete
+truncate -s 0 gfaydark/player.pl
+toxxulia/player.pl: remove spire/nexus lines
+northkarana/player.pl: remove spire/nexus lines
+dreadlands/player.lua: remove spire/nexus lines
+tox/player.pl: remove spire/nexus lines
+truncate -s 0 greatdivide/player.pl
 
 
+/* Remove wayfarer newbie messages */
+cd quests/
+rg -l -i wayfarers */player.lua | xargs sed -i '/Wayfarers/d'
 
 User commands needed:
 /lootnodrop never
