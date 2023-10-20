@@ -1,16 +1,10 @@
-Fix forest drakling model, basilisk hatchling in gfay
 Wayfarer messages - rathe mountains
-zone controller visible at splitpaw entrance?
-Check on boats. Add teleporters if needed.
+Use alkabor quest database? (Recreate translocators if so)
+Fix boats (either create translocators everywhere, or import boat npc/spawn/path/quest data from peq)
 
 Website
-- Forum
-- Scheduled play time
+- LFG feature
 - Real-time map
-
-Spell research
-- Put all research spells on vendors. Maybe one vendor each, to force exploration.
-
 
 
 Group experience
@@ -266,6 +260,15 @@ update spawn2 set min_expansion = 3 where spawngroupID in
 update spawn2 set min_expansion = 3 where spawngroupID in (
     select spawngroupID from spawnentry where npcID in (13060, 38065, 54177, 86098, 118086, 13114, 38163, 54301, 86153, 118165)
 );
+
+/* Add translocators */
+insert into npc_types select * from peq.npc_types where peq.name like "%Translocator%";
+insert into spawngroup select * from peq.spawngroup where peq.spawngroup.id in (select peq.spawnentry.spawngroupID from peq.spawnentry where
+    peq.spawnentry.npcID in (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%"));
+insert into spawnentry select * from peq.spawnentry where peq.spawnentry.npcID in
+    (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%");
+insert into spawn2 select * from peq.spawn2 where peq.spawn2.spawngroupID in (select peq.spawnentry.spawngroupID from peq.spawnentry where
+    peq.spawnentry.npcID in (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%"));
 
 cd quests/
 find -name A_Mystic_Voice.lua -delete
