@@ -1622,17 +1622,14 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		m_pp.RestTimer = 0;
 
 	// PVPWorstDeathStreak is abused to store the daily xp used buffer.
-	// PVPCurrentKillStreak is abused to store whether the player has used convene today. It starts at 12 and counts down.
 	uint32 inactive_hours = (time(nullptr) - m_pp.lastlogin) / 3600;
-	if (inactive_hours > 12) {
+	if (inactive_hours >= 12) {
 		m_pp.PVPWorstDeathStreak = 0;
-		m_pp.PVPCurrentKillStreak = 0;
 	}
-	else {
-		// Reduce it per hour of inactivity.
-		m_pp.PVPWorstDeathStreak -= std::min(m_pp.PVPWorstDeathStreak, (MINUTES_PER_LEVEL / 12) * inactive_hours * 60);;
-		m_pp.PVPCurrentKillStreak -= std::min(m_pp.PVPCurrentKillStreak, inactive_hours);
-	}
+
+	// PVPCurrentKillStream is abused to store whether the player has used convene today. It starts at 12 and counts down.
+	// Reduce it per hour of inactivity.
+	m_pp.PVPCurrentKillStreak -= std::min(m_pp.PVPCurrentKillStreak, inactive_hours);
 
 	/* This checksum should disappear once dynamic structs are in... each struct strategy will do it */ // looks to be in place now
 	//CRC32::SetEQChecksum((unsigned char*)&m_pp, sizeof(PlayerProfile_Struct) - sizeof(m_pp.m_player_profile_version) - 4);
