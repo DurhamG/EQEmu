@@ -1622,7 +1622,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		m_pp.RestTimer = 0;
 
 	// PVPWorstDeathStreak is abused to store the daily xp used buffer.
-	// PVPCurrentKillStream is abused to store whether the player has used convene today. It starts at 12 and counts down.
+	// PVPCurrentKillStreak is abused to store whether the player has used convene today. It starts at 12 and counts down.
 	uint32 inactive_hours = (time(nullptr) - m_pp.lastlogin) / 3600;
 	if (inactive_hours > 12) {
 		m_pp.PVPWorstDeathStreak = 0;

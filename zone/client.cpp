@@ -17,6 +17,7 @@
 */
 #include "../common/global_define.h"
 #include <iostream>
+#include <chrono>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8771,6 +8772,10 @@ bool Client::ConveneOnGroup() {
 
 	Message(Chat::Red, "Error during convene.");
 	return false;
+}
+
+int Client::GetGeneration() {
+	return m_pp.PVPCareerPoints;
 }
 
 bool Client::GotoPlayerRaid(const std::string& player_name)

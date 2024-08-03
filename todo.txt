@@ -1,10 +1,27 @@
+
+
+Generations
+- Don't allow:
+  - Grouping with older generation if level is greater than yours.
+  - Casting spell on lower generation if level is lower than yours.
+  - Trading with lower generation.
+- Change level limit to be per-generation.
+  - Increase level limit per week
+
+Generation-guild
+- Auto-add to generation guild
+
+
 Wayfarer messages - rathe mountains
 Import translocators from PEQ
 
-Website
-- Real-time map
-
-
+Leveling
+- Increase level limit by one per week.
+  - 1 week: level 5.
+  - 1 week: Level 10
+  - 1 week: Level 14
+  - 46 weeks to level 60.
+  - 3 weeks at cap before next generation
 
 Group experience
 - No exp for inactive party member. Use to discourage AFK leveling someone.
@@ -14,7 +31,11 @@ Grouping
 - Limit convene to nearest N zones if server pop is over 100.
 
 Drop rates
-- Guarantee drop per-N-hours?
+- Per-player loot
+- Increase rare drop rates
+  - Reduce drop rate once one rare drop is looted per day
+  - Increase drop rate exponentially per time that mob is killed
+  - Guarantee drops for epic items
 - Raise rate of rare spawns to at least 5%?
 - Reduce max respawn time to 24 hours?
 

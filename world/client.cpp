@@ -1596,6 +1596,17 @@ void Client::SendApproveWorld()
 	safe_delete(outapp);
 }
 
+#include <chrono>
+
+int ComputeGeneration(uint32 bday) {
+    std::chrono::time_point<std::chrono::system_clock> birthTime(std::chrono::seconds(bday));
+	std::chrono::time_point<std::chrono::system_clock> startTime(std::chrono::seconds(1722517200)); // August 1st, 2024
+
+	std::chrono::duration<double> duration = birthTime - startTime;
+    std::chrono::years years = std::chrono::duration_cast<std::chrono::years>(duration);
+    return years.count();
+}
+
 bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 {
 	PlayerProfile_Struct pp;
@@ -1606,6 +1617,7 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	inv.SetGMInventory(false); // character cannot have gm flag at this point
 
 	time_t bday = time(nullptr);
+	uint32 generation = ComputeGeneration(bday);
 	in_addr in;
 
 	int stats_sum = cc->STR + cc->STA + cc->AGI + cc->DEX + cc->WIS + cc->INT + cc->CHA;
@@ -1686,6 +1698,7 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	pp.drakkin_details		= cc->drakkin_details;
 	pp.birthday		= bday;
 	pp.lastlogin	= bday;
+	pp.PVPCareerPoints = generation;
 	pp.level			= 1;
 	pp.points			= 5;
 	pp.cur_hp			= 1000; // 1k hp during dev only

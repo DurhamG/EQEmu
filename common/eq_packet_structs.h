@@ -1071,10 +1071,10 @@ struct PlayerProfile_Struct
 /*8188*/	uint32				PVPKills;
 /*8192*/	uint32				PVPDeaths;
 /*8196*/	uint32				PVPCurrentPoints;
-/*8200*/	uint32				PVPCareerPoints;
-/*8204*/	uint32				PVPBestKillStreak;
-/*8208*/	uint32				PVPWorstDeathStreak;
-/*8212*/	uint32				PVPCurrentKillStreak;
+/*8200*/	uint32				PVPCareerPoints;      // Abused to store generation number
+/*8204*/	uint32				PVPBestKillStreak;    // Abused to store exp lost
+/*8208*/	uint32				PVPWorstDeathStreak;  // Abused to store daily exp used
+/*8212*/	uint32				PVPCurrentKillStreak; // Abused to store #convene usage
 /*8216*/	PVPStatsEntry_Struct	PVPLastKill;
 /*8304*/	PVPStatsEntry_Struct	PVPLastDeath;
 /*8392*/	uint32				PVPNumberOfKillsInLast24Hours;
