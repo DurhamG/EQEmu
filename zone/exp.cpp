@@ -623,6 +623,36 @@ void Client::AddEXP(uint64 in_add_exp, uint8 conlevel, bool resexp, uint8 exp_le
 	SetEXP(exp, aaexp, resexp, exp_level);
 }
 
+// Generation 0 starts on August 24, 2024. A new generation starts exactly 1 year after the previous one.
+// The max level for a given generation is affected by the number of weeks since the generation started.
+// For the first week, the max level is 5. For the second week, the max level is 10. For the third week, the max level is 14.
+// After that, the max level goes up by 1 every week until it reaches level 60.
+uint8 Client::GetClientMaxLevel() {
+	uint8 level = GetLevel();
+	uint32 generation = GetGeneration();
+	auto gen_start = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(1722517200)) + std::chrono::years(generation);
+
+	int totalWeeks = std::chrono::duration_cast<std::chrono::weeks>(std::chrono::system_clock::now() - gen_start).count();
+
+	int max_level = 0;
+
+	// Calculate the max level based on the number of weeks
+	if (totalWeeks < 1) {
+		max_level = 5;
+	}
+	else if (totalWeeks < 2) {
+		max_level = 10;
+	}
+	else if (totalWeeks < 3) {
+		max_level = 14;
+	}
+	else {
+		max_level = std::max(60, 14 + (totalWeeks - 3));
+	}
+
+	return max_level;
+}
+
 void Client::SetEXP(uint64 set_exp, uint64 set_aaxp, bool isrezzexp, uint8 exp_level) {
 	LogDebug("Attempting to Set Exp for [{}] (XP: [{}], AAXP: [{}], Rez: [{}])", GetCleanName(), set_exp, set_aaxp, isrezzexp ? "true" : "false");
 
