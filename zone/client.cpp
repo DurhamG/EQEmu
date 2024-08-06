@@ -8778,6 +8778,36 @@ int Client::GetGeneration() {
 	return m_pp.PVPCareerPoints;
 }
 
+bool Client::AllowCrossGenerationTargetHelp(Client* target) {
+	uint32 this_gen = GetGeneration();
+	uint32 target_gen = target->GetGeneration();
+	uint32 this_level = GetLevel();
+	uint32 target_level = target->GetLevel();
+
+	// Allow helping someone else if they are from an older generation,
+	// or are lower than your level.
+	return target_gen <= this_gen || target_level <= this_level;
+}
+
+bool Client::AllowCrossGenerationMutualHelp(Client* target) {
+	uint32 this_gen = GetGeneration();
+	uint32 target_gen = target->GetGeneration();
+	uint32 this_level = GetLevel();
+	uint32 target_level = target->GetLevel();
+
+	// Allow a mutually beneficial transaction if the older generation person is
+	// lower level than the younger generation person.
+	if (this_gen == target_gen) {
+		return true;
+	}
+	else if (this_gen < target_gen) {
+		return this_level <= target_level;
+	}
+	else {
+		return this_level >= target_level;
+	}
+}
+
 bool Client::GotoPlayerRaid(const std::string& player_name)
 {
 	if (!GetRaid()) {

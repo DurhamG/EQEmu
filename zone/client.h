@@ -260,6 +260,8 @@ public:
 	bool ConveneOnGroup();
 
 	int GetGeneration();
+	bool AllowCrossGenerationTargetHelp(Client* target);
+	bool AllowCrossGenerationMutualHelp(Client* target);
 
 	//abstract virtual function implementations required by base abstract class
 	virtual bool Death(Mob* killerMob, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill);

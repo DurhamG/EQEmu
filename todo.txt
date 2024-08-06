@@ -1,10 +1,4 @@
-
-
 Generations
-- Don't allow:
-  - Grouping with older generation if level is greater than yours.
-  - Casting spell on lower generation if level is lower than yours.
-  - Trading with lower generation.
 - Change level limit to be per-generation.
   - Increase level limit per week
 

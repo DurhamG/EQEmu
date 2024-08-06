@@ -1598,12 +1598,11 @@ void Client::SendApproveWorld()
 
 #include <chrono>
 
-int ComputeGeneration(uint32 bday) {
-    std::chrono::time_point<std::chrono::system_clock> birthTime(std::chrono::seconds(bday));
-	std::chrono::time_point<std::chrono::system_clock> startTime(std::chrono::seconds(1722517200)); // August 1st, 2024
+int ComputeGeneration(long long bday) {
+    auto birth_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(bday));
+	auto start_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(1722517200)); // August 1st, 2024
 
-	std::chrono::duration<double> duration = birthTime - startTime;
-    std::chrono::years years = std::chrono::duration_cast<std::chrono::years>(duration);
+    auto years = std::chrono::duration_cast<std::chrono::years>(birth_time - start_time);
     return years.count();
 }
 

@@ -7309,6 +7309,12 @@ void Client::Handle_OP_GroupInvite2(const EQApplicationPacket *app)
 	{
 		if (Invitee->IsClient())
 		{
+			Client* invitee_client = Invitee->CastToClient();
+			if (!this->AllowCrossGenerationMutualHelp(invitee_client)) {
+				Message(Chat::Red, "Cannot invite %s to a group since they are from a different generation and not an appropriate level.", Invitee->GetCleanName());
+				return;
+			}
+
 			if (Invitee->CastToClient()->MercOnlyOrNoGroup() && !Invitee->IsRaidGrouped())
 			{
 				if (app->GetOpcode() == OP_GroupInvite2)
@@ -15270,7 +15276,13 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
 
 	// Pass trade request on to recipient
 	if (tradee && tradee->IsClient()) {
-		tradee->CastToClient()->QueuePacket(app);
+		Client* tradee_client = tradee->CastToClient();
+		if (this->AllowCrossGenerationMutualHelp(tradee_client)) {
+			tradee_client->QueuePacket(app);
+		}
+		else {
+			Message(Chat::Red, "Unable to trade with someone of an earlier generation and higher level.");
+		}
 	}
 	else if (tradee && (tradee->IsNPC() || tradee->IsBot())) {
         if (!tradee->IsEngaged()) {
@@ -15284,7 +15296,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
         }
     }
 	return;
-	}
+}
 
 void Client::Handle_OP_TradeRequestAck(const EQApplicationPacket *app)
 {

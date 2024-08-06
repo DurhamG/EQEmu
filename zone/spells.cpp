@@ -3235,6 +3235,13 @@ bool Mob::CheckSpellLevelRestriction(Mob *caster, uint16 spell_id)
 			if (RuleB(Spells, BuffLevelRestrictions)) {
 				check_for_restrictions = true;
 			}
+
+			Client* this_client = caster->CastToClient();
+			Client* caster_client = CastToClient();
+			if (!caster_client->AllowCrossGenerationTargetHelp(this_client)) {
+				caster->MessageString(Chat::SpellFailure, SPELL_TOO_POWERFUL);
+				return false;
+			}
 		}
 	}
 	// NPCS might be restricted by rule setting
