@@ -1846,6 +1846,52 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 		LogInfo("Character creation failed: [{}]", pp.name);
 		return false;
 	}
+
+	// Add the character to the generation guild.
+	int character_id = database.GetCharacterID(pp.name);
+	int guild_id = -1;
+	switch (generation) {
+		case 0:
+			guild_id = 0;
+			break;
+		case 1:
+			guild_id = 0;
+			break;
+		case 2:
+			guild_id = 0;
+			break;
+		case 3:
+			guild_id = 0;
+			break;
+		case 4:
+			guild_id = 0;
+			break;
+		case 5:
+			guild_id = 0;
+			break;
+		case 6:
+			guild_id = 0;
+			break;
+		case 7:
+			guild_id = 0;
+			break;
+		case 8:
+			guild_id = 0;
+			break;
+		case 9:
+			guild_id = 0;
+			break;
+		case 10:
+			guild_id = 0;
+			break;
+		default:
+			break;
+	};
+
+	if (guild_id >= 0 && !guild_mgr.SetGuild(character_id, guild_id, 0)) {
+		LogInfo("Unable to add created character to generation guild.");
+	}
+
 	LogInfo("Character creation successful: [{}]", pp.name);
 	return true;
 }
