@@ -3601,6 +3601,15 @@ bool Mob::SpellOnTarget(
 		return false;
 	}
 
+	if (IsClient() && spelltar->IsClient()) {
+		Client* this_client = CastToClient();
+		Client* target_client = spelltar->CastToClient();
+
+		if (!this_client->AllowCrossGenerationTargetHelp(target_client)) {
+			return false;
+		}
+	}
+
 	if (
 		IsDetrimentalSpell(spell_id) &&
 		!IsAttackAllowed(spelltar, true) &&

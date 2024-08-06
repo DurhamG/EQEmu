@@ -1,7 +1,3 @@
-Generations
-- Change level limit to be per-generation.
-  - Increase level limit per week
-
 Generation-guild
 - Auto-add to generation guild
 
