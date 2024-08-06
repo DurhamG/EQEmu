@@ -1,17 +1,17 @@
-Generation-guild
+Limit player to two characters per generation
+
+Pet level
+- Chose between highest and second to highest level
+
+Test
+- Level cap based on time and generation
+- Can't cast, trade, ae buff, or group with older generation unless lower leveled.
 - Auto-add to generation guild
 
 
 Wayfarer messages - rathe mountains
 Import translocators from PEQ
 
-Leveling
-- Increase level limit by one per week.
-  - 1 week: level 5.
-  - 1 week: Level 10
-  - 1 week: Level 14
-  - 46 weeks to level 60.
-  - 3 weeks at cap before next generation
 
 Group experience
 - No exp for inactive party member. Use to discourage AFK leveling someone.

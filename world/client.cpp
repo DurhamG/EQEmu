@@ -1674,6 +1674,21 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 		}
 	}
 
+	// Limit the user to only two characters per generation.
+	auto results = database.QueryDatabase("SELECT COUNT(*) FROM character_data WHERE account_id = %u AND pvpcareerpoints = %u",
+		GetAccountID(), generation);
+
+	if (!results.Success() || !results.RowCount()) {
+		LogInfo("Unable to check database for existing characters.");
+		return false;
+	}
+
+	auto character_count = Strings::ToInt(results.begin()[0]);
+	if (character_count >= 2) {
+		LogInfo("Account already has 2 characters for this generation.");
+		return false;
+	}
+
 	/* Convert incoming cc_s to the new PlayerProfile_Struct */
 	memset(&pp, 0, sizeof(PlayerProfile_Struct));	// start building the profile
 
