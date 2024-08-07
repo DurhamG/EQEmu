@@ -104,7 +104,7 @@ uint32 Lua_Corpse::GetWornItem(int16 equipSlot) {
 
 void Lua_Corpse::RemoveItem(uint16 lootslot) {
 	Lua_Safe_Call_Void();
-	self->RemoveItem(lootslot);
+	self->RemoveItem(lootslot, 0);
 }
 
 void Lua_Corpse::SetCash(uint32 copper, uint32 silver, uint32 gold, uint32 platinum) {
@@ -184,28 +184,28 @@ uint16 Lua_Corpse::CountItem(uint32 item_id) {
 
 uint32 Lua_Corpse::GetItemIDBySlot(uint16 loot_slot) {
 	Lua_Safe_Call_Int();
-	return self->GetItemIDBySlot(loot_slot);
+	return self->GetItemIDBySlot(loot_slot, 0);
 }
 
 uint16 Lua_Corpse::GetFirstSlotByItemID(uint32 item_id) {
 	Lua_Safe_Call_Int();
-	return self->GetFirstSlotByItemID(item_id);
+	return self->GetFirstSlotByItemID(item_id, 0);
 }
 
 void Lua_Corpse::RemoveItemByID(uint32 item_id) {
 	Lua_Safe_Call_Void();
-	self->RemoveItemByID(item_id);
+	self->RemoveItemByID(item_id, 1, 0);
 }
 
 void Lua_Corpse::RemoveItemByID(uint32 item_id, int quantity) {
 	Lua_Safe_Call_Void();
-	self->RemoveItemByID(item_id, quantity);	
+	self->RemoveItemByID(item_id, quantity, 0);	
 }
 
 Lua_Corpse_Loot_List Lua_Corpse::GetLootList(lua_State* L) {
 	Lua_Safe_Call_Class(Lua_Corpse_Loot_List);
 	Lua_Corpse_Loot_List ret;
-	auto loot_list = self->GetLootList();
+	auto loot_list = self->GetLootList(0);
 	
 	for (auto item_id : loot_list) {
 		ret.entries.push_back(item_id);

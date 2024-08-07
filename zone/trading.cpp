@@ -806,7 +806,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 
 									tradingWith->CastToNPC()->AddLootDrop(
 										bagitem,
-										&tradingWith->CastToNPC()->itemlist,
+										tradingWith->CastToNPC()->GetItemList(0),
 										loot_drop_entry,
 										true
 									);
@@ -834,7 +834,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 
 					tradingWith->CastToNPC()->AddLootDrop(
 						item,
-						&tradingWith->CastToNPC()->itemlist,
+						tradingWith->CastToNPC()->GetItemList(0),
 						new_loot_drop_entry,
 						true
 					);

@@ -63,7 +63,7 @@ void Perl_NPC_AddItem(NPC* self, uint32 item_id, uint16 charges, bool equip_item
 
 void Perl_NPC_AddLootTable(NPC* self) // @categories Inventory and Items
 {
-	self->AddLootTable();
+	self->AddLootTable(0);
 }
 
 void Perl_NPC_AddLootTable(NPC* self, uint32 loottable_id) // @categories Inventory and Items

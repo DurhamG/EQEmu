@@ -1,4 +1,11 @@
-Limit player to two characters per generation
+Drop rates
+- Increase rare drop rates
+  - Reduce drop rate once one rare drop is looted per day
+  - Increase drop rate exponentially per time that mob is killed
+  - Guarantee drops for epic items
+- Raise rate of rare spawns to at least 5%?
+- Reduce max respawn time to 24 hours?
+
 
 Pet level
 - Chose between highest and second to highest level
@@ -7,7 +14,10 @@ Test
 - Level cap based on time and generation
 - Can't cast, trade, ae buff, or group with older generation unless lower leveled.
 - Auto-add to generation guild
+- Limit player to two characters per generation
 
+Fix
+- need better error message when refusing to create additional accounts in a generation
 
 Wayfarer messages - rathe mountains
 Import translocators from PEQ
@@ -20,17 +30,8 @@ Group experience
 Grouping
 - Limit convene to nearest N zones if server pop is over 100.
 
-Drop rates
-- Per-player loot
-- Increase rare drop rates
-  - Reduce drop rate once one rare drop is looted per day
-  - Increase drop rate exponentially per time that mob is killed
-  - Guarantee drops for epic items
-- Raise rate of rare spawns to at least 5%?
-- Reduce max respawn time to 24 hours?
-
-Experience
-- Increase zone multiplier for the most rarely used zones.
+Exploration
+- Some sort of benefit for using unused zones.
 
 Operations
 - Logging

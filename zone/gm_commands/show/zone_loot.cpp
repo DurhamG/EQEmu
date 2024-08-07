@@ -4,19 +4,19 @@ void ShowZoneLoot(Client *c, const Seperator *sep)
 {
 	const uint32 search_item_id = sep->IsNumber(2) ? Strings::ToUnsignedInt(sep->arg[2]) : 0;
 
-	std::vector<std::pair<NPC *, ItemList>> v;
+	std::vector<std::pair<NPC *, ItemList *>> v;
 
 	uint32 loot_count  = 0;
 	uint32 loot_number = 1;
 
 	for (auto npc_entity: entity_list.GetNPCList()) {
-		auto il = npc_entity.second->GetItemList();
+		auto il = npc_entity.second->GetItemList(0);
 		v.emplace_back(std::make_pair(npc_entity.second, il));
 	}
 
 	for (const auto &e: v) {
 		NPC        *n = e.first;
-		const auto &l = e.second;
+		const auto l = e.second;
 
 		std::string npc_link;
 		if (n) {
@@ -43,7 +43,7 @@ void ShowZoneLoot(Client *c, const Seperator *sep)
 			);
 		}
 
-		for (const auto &i: l) {
+		for (const auto &i: *l) {
 			if (!search_item_id || i->item_id == search_item_id) {
 				EQ::SayLinkEngine linker;
 				linker.SetLinkType(EQ::saylink::SayLinkLootItem);

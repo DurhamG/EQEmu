@@ -1675,8 +1675,11 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	}
 
 	// Limit the user to only two characters per generation.
-	auto results = database.QueryDatabase("SELECT COUNT(*) FROM character_data WHERE account_id = %u AND pvpcareerpoints = %u",
-		GetAccountID(), generation);
+	auto query = fmt::format(
+		"SELECT COUNT(*) FROM character_data WHERE `account_id` = {} AND `pvp_career_points` = {} AND `deleted_at` IS NULL",
+		GetAccountID(), generation
+	);
+	auto results = database.QueryDatabase(query);
 
 	if (!results.Success() || !results.RowCount()) {
 		LogInfo("Unable to check database for existing characters.");
@@ -1684,8 +1687,8 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	}
 
 	auto character_count = Strings::ToInt(results.begin()[0]);
-	if (character_count >= 2) {
-		LogInfo("Account already has 2 characters for this generation.");
+	if (character_count >= 3) {
+		LogInfo("Account already has [{}] characters for this generation.", character_count);
 		return false;
 	}
 

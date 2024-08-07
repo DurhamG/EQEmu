@@ -261,9 +261,9 @@ bool Spawn2::Process() {
 		NPC *npc = new NPC(tmp, this, glm::vec4(x, y, z, heading), GravityBehavior::Water);
 
 		npcthis = npc;
-		npc->AddLootTable();
+		npc->AddLootTable(0);
 		if (npc->DropsGlobalLoot()) {
-			npc->CheckGlobalLootTables();
+			npc->CheckGlobalLootTables(0);
 		}
 		npc->SetSpawnGroupId(spawngroup_id_);
 		npc->SaveGuardPointAnim(anim);

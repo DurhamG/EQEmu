@@ -78,7 +78,7 @@ uint32_t Perl_Corpse_GetWornItem(Corpse* self, uint16_t equip_slot) // @categori
 
 void Perl_Corpse_RemoveItem(Corpse* self, uint16_t loot_slot) // @categories Inventory and Items, Corpse
 {
-	self->RemoveItem(loot_slot);
+	self->RemoveItem(loot_slot, 0);
 }
 
 void Perl_Corpse_SetCash(Corpse* self, uint16 copper, uint16 silver, uint16 gold, uint16 platinum) // @categories Currency and Points, Corpse
@@ -168,29 +168,29 @@ int Perl_Corpse_CountItem(Corpse* self, uint32_t item_id) // @categories Script 
 
 uint32_t Perl_Corpse_GetItemIDBySlot(Corpse* self, uint16_t loot_slot) // @categories Script Utility
 {
-	return self->GetItemIDBySlot(loot_slot);
+	return self->GetItemIDBySlot(loot_slot, 0);
 }
 
 int Perl_Corpse_GetFirstSlotByItemID(Corpse* self, uint32_t item_id) // @categories Script Utility
 {
-	return self->GetFirstSlotByItemID(item_id);
+	return self->GetFirstSlotByItemID(item_id, 0);
 }
 
 void Perl_Corpse_RemoveItemByID(Corpse* self, uint32_t item_id) // @categories Script Utility
 {
-	self->RemoveItemByID(item_id);
+	self->RemoveItemByID(item_id, 1, 0);
 }
 
 void Perl_Corpse_RemoveItemByID(Corpse* self, uint32_t item_id, int quantity) // @categories Script Utility
 {
-	self->RemoveItemByID(item_id);
+	self->RemoveItemByID(item_id, 1, 0);
 }
 
 perl::array Perl_Corpse_GetLootList(Corpse* self) // @categories Script Utility
 {
 	perl::array result;
 
-	auto corpse_items = self->GetLootList();
+	auto corpse_items = self->GetLootList(0);
 	for (int i = 0; i < corpse_items.size(); ++i)
 	{
 		result.push_back(corpse_items[i]);
