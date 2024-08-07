@@ -43,9 +43,9 @@ class Corpse : public Mob {
 	static void SendEndLootErrorPacket(Client* client);
 	static void SendLootReqErrorPacket(Client* client, LootResponse response = LootResponse::NotAtThisTime);
 
-	Corpse(NPC* in_npc, ItemList* in_itemlist, uint32 in_npctypeid, const NPCType** in_npctypedata, uint32 in_decaytime = 600000);
+	Corpse(NPC* in_npc, ItemListMap* in_itemlistmap, uint32 in_npctypeid, const NPCType** in_npctypedata, uint32 in_decaytime = 600000);
 	Corpse(Client* client, int32 in_rezexp);
-	Corpse(uint32 in_corpseid, uint32 in_charid, const char* in_charname, ItemList* in_itemlist, uint32 in_copper, uint32 in_silver, uint32 in_gold, uint32 in_plat, const glm::vec4& position, float in_size, uint8 in_gender, uint16 in_race, uint8 in_class, uint8 in_deity, uint8 in_level, uint8 in_texture, uint8 in_helmtexture, uint32 in_rezexp, bool wasAtGraveyard = false);
+	Corpse(uint32 in_corpseid, uint32 in_charid, const char* in_charname, ItemListMap* in_itemlistmap, uint32 in_copper, uint32 in_silver, uint32 in_gold, uint32 in_plat, const glm::vec4& position, float in_size, uint8 in_gender, uint16 in_race, uint8 in_class, uint8 in_deity, uint8 in_level, uint8 in_texture, uint8 in_helmtexture, uint32 in_rezexp, bool wasAtGraveyard = false);
 
 	~Corpse();
 	static Corpse* LoadCharacterCorpseEntity(uint32 in_dbid, uint32 in_charid, std::string in_charname, const glm::vec4& position, std::string time_of_death, bool rezzed, bool was_at_graveyard, uint32 guild_consent_id);
@@ -93,7 +93,7 @@ class Corpse : public Mob {
 	void			LoadPlayerCorpseDecayTime(uint32 dbid);
 
 	/* Corpse: Items */
-	uint32					GetWornItem(int16 equipSlot) const;
+	uint32					GetWornItem(int16 equipSlot);
 	ServerLootItem_Struct*	GetItem(uint16 lootslot, ServerLootItem_Struct** bag_item_data = 0);
 	void	SetPlayerKillItemID(int32 pk_item_id) { player_kill_item = pk_item_id; }
 	int32	GetPlayerKillItem() { return player_kill_item; }
@@ -130,6 +130,7 @@ class Corpse : public Mob {
 	void	CompleteResurrection();
 
 	/* Corpse: Loot */
+	ItemList* GetItemList(uint32 character_id);
 	void	QueryLoot(Client* to);
 	bool	HasItem(uint32 item_id);
 	uint16	CountItem(uint32 item_id);
@@ -157,8 +158,8 @@ class Corpse : public Mob {
 	void Spawn();
 
 	char		corpse_name[64];
-	uint32		GetEquippedItemFromTextureSlot(uint8 material_slot) const;
-	uint32		GetEquipmentColor(uint8 material_slot) const;
+	uint32		GetEquippedItemFromTextureSlot(uint8 material_slot);
+	uint32		GetEquipmentColor(uint8 material_slot);
 	inline int	GetRezExp() { return rez_experience; }
 
 	virtual void UpdateEquipmentLight();
@@ -176,7 +177,7 @@ private:
 	uint32		consented_group_id = 0;
 	uint32		consented_raid_id  = 0;
 	uint32		consented_guild_id = 0;
-	ItemList	itemlist; /* Internal Item list used for corpses */
+	ItemListMap	itemlistmap; /* Internal Item list used for corpses */
 	uint32		copper;
 	uint32		silver;
 	uint32		gold;

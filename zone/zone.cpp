@@ -2521,10 +2521,10 @@ void Zone::DoAdventureActions()
 					GravityBehavior::Water
 				);
 
-				npc->AddLootTable();
+				npc->AddLootTable(0);
 
 				if (npc->DropsGlobalLoot()) {
-					npc->CheckGlobalLootTables();
+					npc->CheckGlobalLootTables(0);
 				}
 
 				entity_list.AddNPC(npc);

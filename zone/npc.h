@@ -194,14 +194,14 @@ public:
 
 	void	AddItem(const EQ::ItemData* item, uint16 charges, bool equipitem = true);
 	void	AddItem(uint32 itemid, uint16 charges, bool equipitem = true, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
-	void	AddLootTable();
-	void	AddLootTable(uint32 ldid);
-	void	CheckGlobalLootTables();
+	ItemList* GetItemList(uint32 character_id);
+	void	AddLootTable(uint32 character_id);
+	void	AddLootTable(uint32 character_id, uint32 ldid);
+	void	CheckGlobalLootTables(uint32 character_id);
 	void	DescribeAggro(Client *to_who, Mob *mob, bool verbose);
 	void	RemoveItem(uint32 item_id, uint16 quantity = 0, uint16 slot = 0);
 	void	CheckTrivialMinMaxLevelDrop(Mob *killer);
 	void	ClearItemList();
-	inline const ItemList &GetItemList() { return itemlist; }
 	ServerLootItem_Struct*	GetItem(int slot_id);
 	void	AddCash(uint16 in_copper, uint16 in_silver, uint16 in_gold, uint16 in_platinum);
 	void	RemoveCash();
@@ -398,7 +398,7 @@ public:
 	float GetProximityMaxZ();
 	bool  IsProximitySet();
 
-	ItemList	itemlist; //kathgar - why is this public? Doing other things or I would check the code
+	ItemListMap	itemlistmap; //kathgar - why is this public? Doing other things or I would check the code
 
 	NPCProximity* proximity;
 	Spawn2*	respawn2;

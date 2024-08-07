@@ -515,14 +515,14 @@ NPC::~NPC()
 	safe_delete(NPCTypedata_ours);
 
 	{
-	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
-	for(; cur != end; ++cur) {
-		ServerLootItem_Struct* item = *cur;
-		safe_delete(item);
-	}
-	itemlist.clear();
+		for (auto it = itemlistmap.begin(); it != itemlistmap.end(); ++it) {
+			for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+				ServerLootItem_Struct* item = *it2;
+				safe_delete(item);
+			}
+			it->second.clear();
+		}
+		itemlistmap.clear();
 	}
 
 	{
@@ -581,9 +581,10 @@ void NPC::SetTarget(Mob* mob) {
 }
 
 ServerLootItem_Struct* NPC::GetItem(int slot_id) {
+	auto itemlist = GetItemList(0);
 	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
+	cur = itemlist->begin();
+	end = itemlist->end();
 	for(; cur != end; ++cur) {
 		ServerLootItem_Struct* item = *cur;
 		if (item->equip_slot == slot_id) {
@@ -594,20 +595,21 @@ ServerLootItem_Struct* NPC::GetItem(int slot_id) {
 }
 
 void NPC::RemoveItem(uint32 item_id, uint16 quantity, uint16 slot) {
+	auto itemlist = GetItemList(0);
 	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
+	cur = itemlist->begin();
+	end = itemlist->end();
 	for(; cur != end; ++cur) {
 		ServerLootItem_Struct* item = *cur;
 		if (item->item_id == item_id && slot <= 0 && quantity <= 0) {
-			itemlist.erase(cur);
+			itemlist->erase(cur);
 			UpdateEquipmentLight();
 			if (UpdateActiveLight()) { SendAppearancePacket(AT_Light, GetActiveLightType()); }
 			return;
 		}
 		else if (item->item_id == item_id && item->equip_slot == slot && quantity >= 1) {
 			if (item->charges <= quantity) {
-				itemlist.erase(cur);
+				itemlist->erase(cur);
 				UpdateEquipmentLight();
 				if (UpdateActiveLight()) { SendAppearancePacket(AT_Light, GetActiveLightType()); }
 			}
@@ -628,8 +630,10 @@ void NPC::CheckTrivialMinMaxLevelDrop(Mob *killer)
 	uint16 killer_level = killer->GetLevel();
 	uint8  material;
 
-	auto cur = itemlist.begin();
-	while (cur != itemlist.end()) {
+	auto itemlist = GetItemList(0);
+
+	auto cur = itemlist->begin();
+	while (cur != itemlist->end()) {
 		if (!(*cur)) {
 			return;
 		}
@@ -647,7 +651,7 @@ void NPC::CheckTrivialMinMaxLevelDrop(Mob *killer)
 				SendWearChange(material);
 			}
 
-			cur = itemlist.erase(cur);
+			cur = itemlist->erase(cur);
 			continue;
 		}
 		++cur;
@@ -660,14 +664,13 @@ void NPC::CheckTrivialMinMaxLevelDrop(Mob *killer)
 }
 
 void NPC::ClearItemList() {
-	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
-	for(; cur != end; ++cur) {
-		ServerLootItem_Struct* item = *cur;
-		safe_delete(item);
+	for (auto it = itemlistmap.begin(); it != itemlistmap.end(); ++it) {
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+			ServerLootItem_Struct* item = *it2;
+			safe_delete(item);
+		}
+		it->second.clear();
 	}
-	itemlist.clear();
 
 	UpdateEquipmentLight();
 	if (UpdateActiveLight())
@@ -676,7 +679,8 @@ void NPC::ClearItemList() {
 
 void NPC::QueryLoot(Client* to, bool is_pet_query)
 {
-	if (!itemlist.empty()) {
+	auto itemlist = GetItemList(to->CharacterID());
+	if (!itemlist->empty()) {
 		if (!is_pet_query) {
 			to->Message(
 				Chat::White,
@@ -691,7 +695,7 @@ void NPC::QueryLoot(Client* to, bool is_pet_query)
 		}
 
 		int item_count = 0;
-		for (auto current_item : itemlist) {
+		for (auto current_item : *itemlist) {
 			int item_number = (item_count + 1);
 			if (!current_item) {
 				LogError("NPC::QueryLoot() - ItemList error, null item.");
@@ -756,7 +760,8 @@ bool NPC::HasItem(uint32 item_id) {
 		return false;
 	}
 
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+	auto itemlist = GetItemList(0);
+	for (auto current_item  = itemlist->begin(); current_item != itemlist->end(); ++current_item) {
 		ServerLootItem_Struct* loot_item = *current_item;
 		if (!loot_item) {
 			LogError("NPC::HasItem() - ItemList error, null item");
@@ -781,7 +786,8 @@ uint16 NPC::CountItem(uint32 item_id) {
 		return item_count;
 	}
 
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+	auto itemlist = GetItemList(0);
+	for (auto current_item  = itemlist->begin(); current_item != itemlist->end(); ++current_item) {
 		ServerLootItem_Struct* loot_item = *current_item;
 		if (!loot_item) {
 			LogError("NPC::CountItem() - ItemList error, null item");
@@ -801,7 +807,8 @@ uint16 NPC::CountItem(uint32 item_id) {
 }
 
 uint32 NPC::GetItemIDBySlot(uint16 loot_slot) {
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+	auto itemlist = GetItemList(0);
+	for (auto current_item  = itemlist->begin(); current_item != itemlist->end(); ++current_item) {
 		ServerLootItem_Struct* loot_item = *current_item;
 		if (loot_item->lootslot == loot_slot) {
 			return loot_item->item_id;
@@ -811,7 +818,8 @@ uint32 NPC::GetItemIDBySlot(uint16 loot_slot) {
 }
 
 uint16 NPC::GetFirstSlotByItemID(uint32 item_id) {
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+	auto itemlist = GetItemList(0);
+	for (auto current_item  = itemlist->begin(); current_item != itemlist->end(); ++current_item) {
 		ServerLootItem_Struct* loot_item = *current_item;
 		if (loot_item->item_id == item_id) {
 			return loot_item->lootslot;
@@ -1079,7 +1087,7 @@ bool NPC::Process()
 }
 
 uint32 NPC::CountLoot() {
-	return(itemlist.size());
+	return(GetItemList(0)->size());
 }
 
 void NPC::UpdateEquipmentLight()
@@ -1100,7 +1108,8 @@ void NPC::UpdateEquipmentLight()
 	}
 
 	uint8 general_light_type = 0;
-	for (auto iter = itemlist.begin(); iter != itemlist.end(); ++iter) {
+	auto itemlist = GetItemList(0);
+	for (auto iter = itemlist->begin(); iter != itemlist->end(); ++iter) {
 		auto item = database.GetItem((*iter)->item_id);
 		if (item == nullptr) { continue; }
 
@@ -1914,8 +1923,9 @@ void NPC::PickPocket(Client* thief)
 
 	// still needs to have FindFreeSlot vs PutItemInInventory issue worked out
 	while (steal_item) {
+		auto itemlist = GetItemList(0);
 		std::vector<std::pair<const EQ::ItemData*, uint16>> loot_selection; // <const ItemData*, charges>
-		for (auto item_iter : itemlist) {
+		for (auto item_iter : *itemlist) {
 			if (!item_iter || !item_iter->item_id)
 				continue;
 
@@ -2025,9 +2035,10 @@ void NPC::Disarm(Client* client, int chance) {
 			if (weapon) {
 				if (!weapon->Magic && weapon->NoDrop == 255) {
 					int16 charges = -1;
+					auto itemlist = GetItemList(0);
 					ItemList::iterator cur, end;
-					cur = itemlist.begin();
-					end = itemlist.end();
+					cur = itemlist->begin();
+					end = itemlist->end();
 					// Get charges for the item in the loot table
 					for (; cur != end; cur++) {
 						ServerLootItem_Struct* citem = *cur;
@@ -3747,8 +3758,9 @@ bool NPC::IsGuard()
 }
 
 std::vector<int> NPC::GetLootList() {
+	auto itemlist = GetItemList(0);
 	std::vector<int> npc_items;
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+	for (auto current_item  = itemlist->begin(); current_item != itemlist->end(); ++current_item) {
 		ServerLootItem_Struct* loot_item = *current_item;
 		if (!loot_item) {
 			LogError("NPC::GetLootList() - ItemList error, null item");

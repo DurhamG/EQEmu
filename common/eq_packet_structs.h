@@ -5576,8 +5576,10 @@ struct ClientMarqueeMessage_Struct {
 
 };
 
-typedef std::list<ServerLootItem_Struct*> ItemList;
+#include <map>
 
+typedef std::list<ServerLootItem_Struct*> ItemList;
+typedef std::map<uint32, ItemList> ItemListMap;
 
 struct fling_struct {
 /* 00 */ uint32 collision; // 0 collision is off, anything else it's on

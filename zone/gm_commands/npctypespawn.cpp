@@ -20,9 +20,9 @@ void command_npctypespawn(Client *c, const Seperator *sep)
 				npc->SetNPCFactionID(faction_id);
 			}
 
-			npc->AddLootTable();
+			npc->AddLootTable(0);
 			if (npc->DropsGlobalLoot()) {
-				npc->CheckGlobalLootTables();
+				npc->CheckGlobalLootTables(0);
 			}
 			entity_list.AddNPC(npc);
 

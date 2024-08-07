@@ -4647,7 +4647,8 @@ void Merc::UpdateEquipmentLight()
 	}
 
 	uint8 general_light_type = 0;
-	for (auto iter = itemlist.begin(); iter != itemlist.end(); ++iter) {
+	auto itemlist = GetItemList(0);
+	for (auto iter = itemlist->begin(); iter != itemlist->end(); ++iter) {
 		auto item = database.GetItem((*iter)->item_id);
 		if (item == nullptr) { continue; }
 

@@ -134,8 +134,8 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 	// if this lootdrop is droplimit=0 and mindrop 0, scan list once and return
 	if (droplimit == 0 && mindrop == 0) {
 		for (uint32 i = 0; i < loot_drop->NumEntries; ++i) {
-			int      charges = loot_drop->Entries[i].multiplier;
-			for (int j       = 0; j < charges; ++j) {
+			int charges = loot_drop->Entries[i].multiplier;
+			for (int j = 0; j < charges; ++j) {
 				if (zone->random.Real(0.0, 100.0) <= loot_drop->Entries[i].chance &&
 					npc->MeetsLootDropLevelRequirements(loot_drop->Entries[i], true)) {
 					const EQ::ItemData *database_item = GetItem(loot_drop->Entries[i].item_id);
@@ -563,7 +563,7 @@ void NPC::AddItem(const EQ::ItemData *item, uint16 charges, bool equipitem)
 	loot_drop_entry.equip_item   = static_cast<uint8>(equipitem ? 1 : 0);
 	loot_drop_entry.item_charges = charges;
 
-	AddLootDrop(item, &itemlist, loot_drop_entry, true);
+	AddLootDrop(item, GetItemList(0), loot_drop_entry, true);
 }
 
 void NPC::AddItem(
@@ -588,27 +588,44 @@ void NPC::AddItem(
 	loot_drop_entry.equip_item   = static_cast<uint8>(equipitem ? 1 : 0);
 	loot_drop_entry.item_charges = charges;
 
-	AddLootDrop(i, &itemlist, loot_drop_entry, true, aug1, aug2, aug3, aug4, aug5, aug6);
+	AddLootDrop(i, GetItemList(0), loot_drop_entry, true, aug1, aug2, aug3, aug4, aug5, aug6);
 }
 
-void NPC::AddLootTable() {
+ItemList* NPC::GetItemList(uint32 character_id) {
+	ItemList* itemlist = NULL;
+
+	auto it = this->itemlistmap.find(character_id);
+	if (it != this->itemlistmap.end()) {
+		itemlist = &it->second;
+	}
+	else {
+		std::list<ServerLootItem_Struct*> itemList;
+		auto it = this->itemlistmap.insert(std::make_pair(character_id, itemList));
+		itemlist = &it.first->second;
+	}
+
+	return itemlist;
+}
+
+void NPC::AddLootTable(uint32 character_id) {
 	if (npctype_id != 0) { // check if it's a GM spawn
-		database.AddLootTableToNPC(this,loottable_id, &itemlist, &copper, &silver, &gold, &platinum);
+		
+		database.AddLootTableToNPC(this, loottable_id, GetItemList(character_id), &copper, &silver, &gold, &platinum);
 	}
 }
 
-void NPC::AddLootTable(uint32 ldid) {
+void NPC::AddLootTable(uint32 character_id, uint32 ldid) {
 	if (npctype_id != 0) { // check if it's a GM spawn
-	  database.AddLootTableToNPC(this,ldid, &itemlist, &copper, &silver, &gold, &platinum);
+		database.AddLootTableToNPC(this,ldid, GetItemList(character_id), &copper, &silver, &gold, &platinum);
 	}
 }
 
-void NPC::CheckGlobalLootTables()
+void NPC::CheckGlobalLootTables(uint32 character_id)
 {
 	auto tables = zone->GetGlobalLootTables(this);
 
 	for (auto &id : tables)
-		database.AddLootTableToNPC(this, id, &itemlist, nullptr, nullptr, nullptr, nullptr);
+		database.AddLootTableToNPC(this, id, GetItemList(character_id), nullptr, nullptr, nullptr, nullptr);
 }
 
 void ZoneDatabase::LoadGlobalLoot()

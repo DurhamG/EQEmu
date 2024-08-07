@@ -64,7 +64,7 @@ void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2, 
 
 void Lua_NPC::AddLootTable() {
 	Lua_Safe_Call_Void();
-	self->AddLootTable();
+	self->AddLootTable(0);
 }
 
 void Lua_NPC::AddLootTable(int id) {
