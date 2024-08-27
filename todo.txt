@@ -1,10 +1,9 @@
 Drop rates
-- Increase rare drop rates
-  - Reduce drop rate once one rare drop is looted per day
-  - Increase drop rate exponentially per time that mob is killed
-  - Guarantee drops for epic items
-- Raise rate of rare spawns to at least 5%?
+- Allow /pray to increase chance of rare drops once a week
 - Reduce max respawn time to 24 hours?
+
+Boat events
+- Rig up transporters every 5 minutes from docks.
 
 
 Pet level
@@ -17,13 +16,9 @@ Test
 - Limit player to two characters per generation
 
 Fix
-- need better error message when refusing to create additional accounts in a generation
 
 Wayfarer messages - rathe mountains
-Import translocators from PEQ
 Use alkabor quest database? (Recreate translocators if so)
-Fix boats (either create translocators everywhere, or import boat npc/spawn/path/quest data from peq)
-
 
 Group experience
 - No exp for inactive party member. Use to discourage AFK leveling someone.
@@ -340,7 +335,8 @@ insert into spawnentry select * from peq.spawnentry where peq.spawnentry.npcID i
 insert into spawn2 select * from peq.spawn2 where peq.spawn2.spawngroupID in (select peq.spawnentry.spawngroupID from peq.spawnentry where
     peq.spawnentry.npcID in (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%"));
 
-
+/* Remove items from later expansions. (rough pass) */
+delete from items where `reqlevel` > 60;
 
 
 cd quests/

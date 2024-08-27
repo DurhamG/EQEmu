@@ -27,10 +27,10 @@ void command_lootsim(Client *c, const Seperator *sep)
 
 			npc->SetRecordLootStats(true);
 			for (int i = 0; i < iterations; i++) {
-				npc->AddLootTable(loottable_id);
+				npc->AddLootTable(nullptr, loottable_id);
 
 				for (auto &id: zone->GetGlobalLootTables(npc)) {
-					npc->AddLootTable(id);
+					npc->AddLootTable(nullptr, id);
 				}
 			}
 

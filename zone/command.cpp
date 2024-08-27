@@ -186,6 +186,7 @@ int command_init(void)
 		command_add("peqzone", "[Zone ID|Zone Short Name] - Teleports you to the specified zone if you meet the requirements.", AccountStatus::Player, command_peqzone) ||
 		command_add("petitems", "View your pet's items if you have one", AccountStatus::ApprenticeGuide, command_petitems) ||
 		command_add("picklock", "Analog for ldon pick lock for the newer clients since we still don't have it working.", AccountStatus::Player, command_picklock) ||
+		command_add("pray", "Pray to the gods for an item", AccountStatus::Player, command_pray) ||
 		command_add("profanity", "Manage censored language.", AccountStatus::GMLeadAdmin, command_profanity) ||
 		command_add("push", "[Back Push] [Up Push] - Lets you do spell push on an NPC", AccountStatus::GMLeadAdmin, command_push) ||
 		command_add("raidloot", "[All|GroupLeader|RaidLeader|Selected] - Sets your Raid Loot Type if you have permission to do so.", AccountStatus::Player, command_raidloot) ||
@@ -940,8 +941,6 @@ void command_recover(Client* c, const Seperator* sep)
 	command_summonburiedplayercorpse(c, sep);
 }
 
-
-
 void command_encamp(Client* c, const Seperator* sep)
 {
 	if (c->GetArchetype() != ARCHETYPE_CASTER) {
@@ -969,4 +968,37 @@ void command_encamp(Client* c, const Seperator* sep)
 	else {
 		c->Message(Chat::Red, "Casters cannot set up a home camp.");
 	}
+}
+
+void command_pray(Client* c, const Seperator* sep)
+{
+	uint32 prayer_timer = c->GetPVPPoints();
+
+	if (prayer_timer > 0) {
+		c->Message(Chat::Yellow, "Your prayer rings hollow. The gods do not appear to be listening.");
+		return;
+	}
+
+	if (sep->argnum == 0) {
+		c->Message(Chat::Yellow, "Your prayer rings hollow. Why pray for nothing?");
+		return;
+	}
+
+	const std::string command(sep->msg);
+    const auto& search_criteria = Strings::ToLower(command.substr(6));
+
+	const auto& results = ItemsRepository::GetItemIDsBySearchCriteria(content_db, search_criteria, 5);
+
+	if (results.size() == 0) {
+		c->Message(Chat::Yellow, "Your prayer rings hollow. Perhaps that item does not exist?");
+		return;
+	}
+
+	if (results.size() > 1) {
+		c->Message(Chat::Yellow, "Your prayer rings hollow. Perhaps there are many items with that name?");
+		return;
+	}
+
+	c->SetPVPDeaths(results[0]);
+	c->Message(Chat::Yellow, "You feel the attention of the gods on you.");
 }

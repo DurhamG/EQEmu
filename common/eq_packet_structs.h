@@ -1069,8 +1069,8 @@ struct PlayerProfile_Struct
 /*8052*/	uint8				unknown8088[132];
 /*8184*/	uint32				air_remaining;
 /*8188*/	uint32				PVPKills;
-/*8192*/	uint32				PVPDeaths;
-/*8196*/	uint32				PVPCurrentPoints;
+/*8192*/	uint32				PVPDeaths;            // Abused to store current pray item id
+/*8196*/	uint32				PVPCurrentPoints;     // Abused to store last successful prayer loot.
 /*8200*/	uint32				PVPCareerPoints;      // Abused to store generation number
 /*8204*/	uint32				PVPBestKillStreak;    // Abused to store exp lost
 /*8208*/	uint32				PVPWorstDeathStreak;  // Abused to store daily exp used

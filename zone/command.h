@@ -136,6 +136,7 @@ void command_path(Client *c, const Seperator *sep);
 void command_peqzone(Client *c, const Seperator *sep);
 void command_petitems(Client *c, const Seperator *sep);
 void command_picklock(Client *c, const Seperator *sep);
+void command_pray(Client* c, const Seperator* sep);
 void command_profanity(Client *c, const Seperator *sep);
 void command_push(Client *c, const Seperator *sep);
 void command_pvp(Client *c, const Seperator *sep);

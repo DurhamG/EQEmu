@@ -617,6 +617,8 @@ public:
 	void SetLDoNPoints(uint32 theme_id, uint32 points);
 	void SetPVPPoints(uint32 Points) { m_pp.PVPCurrentPoints = Points; }
 	uint32 GetPVPPoints() { return m_pp.PVPCurrentPoints; }
+	uint32 GetPVPDeaths() { return m_pp.PVPDeaths; }
+	void SetPVPDeaths(uint32 value) { m_pp.PVPDeaths = value; }
 	void AddPVPPoints(uint32 Points);
 	uint32 GetRadiantCrystals() { return m_pp.currentRadCrystals; }
 	void SetRadiantCrystals(uint32 value);
