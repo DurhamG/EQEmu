@@ -2703,15 +2703,19 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		entity_list.RemoveFromAutoXTargets(this);
 
 		// Add loot for each group member
-		if (give_exp_client && give_exp_client->IsGrouped()) {
-			auto group = entity_list.GetGroupByClient(give_exp_client);
-			std::list<Client*> member_list;
-			group->GetClientList(member_list);
-			for (Client* entry : member_list) {
-				// TODO: we should somehow copy the id=0 loot for each user. So if a quest/etc
-				// modifies the loot table, that modification is reflected in each characters loot.
-				// TODO: We should increase the chance of class usable loot for each character.
-				AddLootTable(entry->CharacterID());
+		if (give_exp_client) {
+			if (give_exp_client->IsGrouped()) {
+				auto group = entity_list.GetGroupByClient(give_exp_client);
+				std::list<Client*> member_list;
+				group->GetClientList(member_list);
+				for (Client* entry : member_list) {
+					// TODO: we should somehow copy the id=0 loot for each user. So if a quest/etc
+					// modifies the loot table, that modification is reflected in each characters loot.
+					AddLootTable(entry);
+				}
+			}
+			else {
+				AddLootTable(give_exp_client);
 			}
 		}
 

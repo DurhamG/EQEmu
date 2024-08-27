@@ -68,7 +68,7 @@ void Perl_NPC_AddLootTable(NPC* self) // @categories Inventory and Items
 
 void Perl_NPC_AddLootTable(NPC* self, uint32 loottable_id) // @categories Inventory and Items
 {
-	self->AddLootTable(loottable_id);
+	self->AddLootTable(nullptr, loottable_id);
 }
 
 void Perl_NPC_RemoveItem(NPC* self, uint32 item_id) // @categories Inventory and Items

@@ -33,7 +33,7 @@
 #endif
 
 // Queries the loottable: adds item & coin to the npc
-void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* itemlist, uint32* copper, uint32* silver, uint32* gold, uint32* plat) {
+void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* itemlist, uint32* copper, uint32* silver, uint32* gold, uint32* plat, Client* client) {
 	const LootTable_Struct* lts = nullptr;
 	// global loot passes nullptr for these
 	bool bGlobal = copper == nullptr && silver == nullptr && gold == nullptr && plat == nullptr;
@@ -108,7 +108,7 @@ void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* it
 			}
 
 			if (ltchance != 0.0 && (ltchance == 100.0 || drop_chance <= ltchance)) {
-				AddLootDropToNPC(npc, lts->Entries[i].lootdrop_id, itemlist, droplimit, mindrop);
+				AddLootDropToNPC(npc, lts->Entries[i].lootdrop_id, itemlist, droplimit, mindrop, client);
 			}
 		}
 	}
@@ -116,7 +116,7 @@ void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* it
 
 // Called by AddLootTableToNPC
 // maxdrops = size of the array npcd
-void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item_list, uint8 droplimit, uint8 mindrop)
+void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item_list, uint8 droplimit, uint8 mindrop, Client* client)
 {
 	const LootDrop_Struct *loot_drop = GetLootDrop(lootdrop_id);
 	if (!loot_drop) {
@@ -136,7 +136,15 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 		for (uint32 i = 0; i < loot_drop->NumEntries; ++i) {
 			int charges = loot_drop->Entries[i].multiplier;
 			for (int j = 0; j < charges; ++j) {
-				if (zone->random.Real(0.0, 100.0) <= loot_drop->Entries[i].chance &&
+				float chance = loot_drop->Entries[i].chance;
+				uint32 prayer_item_id = client ? client->GetPVPDeaths() : 0;
+
+				// If there's an item being prayed for, give it at least a 50% chance to drop.
+				if (prayer_item_id == loot_drop->Entries[i].item_id) {
+					chance = std::max(chance, 50.0f);
+				}
+
+				if (zone->random.Real(0.0, 100.0) <= chance &&
 					npc->MeetsLootDropLevelRequirements(loot_drop->Entries[i], true)) {
 					const EQ::ItemData *database_item = GetItem(loot_drop->Entries[i].item_id);
 					npc->AddLootDrop(
@@ -144,6 +152,13 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 						item_list,
 						loot_drop->Entries[i]
 					);
+
+					// If this item was prayed for, reset the prayer.
+					if (client && prayer_item_id == loot_drop->Entries[i].item_id) {
+						client->SetPVPDeaths(0);
+						// The number of hours until you can pray again. Approximately 1 week.
+						client->SetPVPPoints(150);
+					}
 				}
 			}
 		}
@@ -166,12 +181,20 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 	for (uint32 i = 0; i < loot_drop->NumEntries; ++i) {
 		const EQ::ItemData *db_item = GetItem(loot_drop->Entries[i].item_id);
 		if (db_item && npc->MeetsLootDropLevelRequirements(loot_drop->Entries[i])) {
-			roll_t += loot_drop->Entries[i].chance;
+			float chance = loot_drop->Entries[i].chance;
+			uint32 prayer_item_id = client ? client->GetPVPDeaths() : 0;
+
+			// If there's an item being prayed for, give it at least a 50% chance to drop.
+			if (prayer_item_id == loot_drop->Entries[i].item_id) {
+				chance = std::max(chance, 50.0f);
+			}
+
+			roll_t += chance;
 			if (loot_drop->Entries[i].chance >= 100) {
 				roll_table_chance_bypass = true;
 			}
 			else {
-				no_loot_prob *= (100 - loot_drop->Entries[i].chance) / 100.0f;
+				no_loot_prob *= (100 - chance) / 100.0f;
 			}
 			active_item_list = true;
 		}
@@ -199,7 +222,15 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 						continue;
 					}
 
-					if (roll < loot_drop->Entries[j].chance) {
+					float chance = loot_drop->Entries[j].chance;
+					uint32 prayer_item_id = client ? client->GetPVPDeaths() : 0;
+
+					// If there's an item being prayed for, give it at least a 50% chance to drop.
+					if (prayer_item_id == loot_drop->Entries[j].item_id) {
+						chance = std::max(chance, 50.0f);
+					}
+
+					if (roll < chance) {
 						npc->AddLootDrop(
 							db_item,
 							item_list,
@@ -207,21 +238,28 @@ void ZoneDatabase::AddLootDropToNPC(NPC *npc, uint32 lootdrop_id, ItemList *item
 						);
 						drops++;
 
-						int charges = (int) loot_drop->Entries[i].multiplier;
+						int charges = (int) loot_drop->Entries[j].multiplier;
 						charges = EQ::ClampLower(charges, 1);
 
 						for (int k = 1; k < charges; ++k) {
 							float c_roll = (float) zone->random.Real(0.0, 100.0);
-							if (c_roll <= loot_drop->Entries[i].chance) {
+							if (c_roll <= loot_drop->Entries[j].chance) {
 								npc->AddLootDrop(
 									db_item,
 									item_list,
-									loot_drop->Entries[i]
+									loot_drop->Entries[j]
 								);
 							}
 						}
 
 						j = loot_drop->NumEntries;
+
+						// If this item was prayed for, reset the prayer.
+						if (client && prayer_item_id == loot_drop->Entries[j].item_id) {
+							client->SetPVPDeaths(0);
+							// The number of hours until you can pray again. Approximately 1 week.
+							client->SetPVPPoints(150);
+						}
 						break;
 					}
 					else {
@@ -607,16 +645,16 @@ ItemList* NPC::GetItemList(uint32 character_id) {
 	return itemlist;
 }
 
-void NPC::AddLootTable(uint32 character_id) {
+void NPC::AddLootTable(Client* client) {
 	if (npctype_id != 0) { // check if it's a GM spawn
 		
-		database.AddLootTableToNPC(this, loottable_id, GetItemList(character_id), &copper, &silver, &gold, &platinum);
+		database.AddLootTableToNPC(this, loottable_id, GetItemList(client ? client->CharacterID() : 0), &copper, &silver, &gold, &platinum, client);
 	}
 }
 
-void NPC::AddLootTable(uint32 character_id, uint32 ldid) {
+void NPC::AddLootTable(Client* client, uint32 ldid) {
 	if (npctype_id != 0) { // check if it's a GM spawn
-		database.AddLootTableToNPC(this,ldid, GetItemList(character_id), &copper, &silver, &gold, &platinum);
+		database.AddLootTableToNPC(this,ldid, GetItemList(client ? client->CharacterID() : 0), &copper, &silver, &gold, &platinum, client);
 	}
 }
 
@@ -625,7 +663,7 @@ void NPC::CheckGlobalLootTables(uint32 character_id)
 	auto tables = zone->GetGlobalLootTables(this);
 
 	for (auto &id : tables)
-		database.AddLootTableToNPC(this, id, GetItemList(character_id), nullptr, nullptr, nullptr, nullptr);
+		database.AddLootTableToNPC(this, id, GetItemList(character_id), nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 void ZoneDatabase::LoadGlobalLoot()
