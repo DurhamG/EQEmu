@@ -368,6 +368,23 @@ Lua_Client_List Lua_EntityList::GetClientList() {
 	return ret;
 }
 
+Lua_Client_List Lua_EntityList::GetCloseClientList(float x, float y, float z, float distance) {
+	Lua_Safe_Call_Class(Lua_Client_List);
+	Lua_Client_List ret;
+	auto& t_list = self->GetClientList();
+
+	auto iter = t_list.begin();
+	while (iter != t_list.end()) {
+		auto client = iter->second;
+		if (client->CalculateDistance(x, y, z) <= distance) {
+			ret.entries.emplace_back(Lua_Client(client));
+		}
+		++iter;
+	}
+
+	return ret;
+}
+
 Lua_Bot Lua_EntityList::GetBotByID(uint32 bot_id) {
 	Lua_Safe_Call_Class(Lua_Bot);
 	return Lua_Bot(self->GetBotByBotID(bot_id));
@@ -710,6 +727,7 @@ luabind::scope lua_register_entity_list() {
 	.def("GetClientByName", (Lua_Client(Lua_EntityList::*)(const char*))&Lua_EntityList::GetClientByName)
 	.def("GetClientByWID", (Lua_Client(Lua_EntityList::*)(uint32))&Lua_EntityList::GetClientByWID)
 	.def("GetClientList", (Lua_Client_List(Lua_EntityList::*)(void))&Lua_EntityList::GetClientList)
+	.def("GetCloseClientList", (Lua_Client_List(Lua_EntityList::*)(float,float,float,float)) & Lua_EntityList::GetCloseClientList)
 	.def("GetCloseMobList", (Lua_Mob_List(Lua_EntityList::*)(Lua_Mob))&Lua_EntityList::GetCloseMobList)
 	.def("GetCloseMobList", (Lua_Mob_List(Lua_EntityList::*)(Lua_Mob,float))&Lua_EntityList::GetCloseMobList)
 	.def("GetCorpseByID", (Lua_Corpse(Lua_EntityList::*)(int))&Lua_EntityList::GetCorpseByID)

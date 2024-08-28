@@ -1,9 +1,17 @@
-Drop rates
-- Allow /pray to increase chance of rare drops once a week
-- Reduce max respawn time to 24 hours?
-
 Boat events
-- Rig up transporters every 5 minutes from docks.
+- Add proximity quest for boats
+  - BB - OoT - FP  (SirensBane (771) || Stormbreaker (770))
+  - BB - TD  (Shuttle (68244))
+  - Oasis - TD Barrel_Barge (840)
+  - TD - FV (Maidens_Voyage (838))
+  - TD - OT (Bloated_Belly (839))
+  - NRo - Iceclad (Icebreaker)
+  - South Qeynos - Erud's Crossing - Erudin (Golden_Maiden (773) || Sea King (772)?)
+  - https://www.eqemulator.org/forums/showthread.php?t=41604
+  - https://www.eqemulator.org/forums/showthread.php?t=24242
+
+Drop rates
+- Reduce max respawn time to 24 hours?
 
 
 Pet level

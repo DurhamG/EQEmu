@@ -115,6 +115,7 @@ public:
 	Lua_NPC GetRandomNPC(float x, float y, float z, float distance, Lua_NPC exclude_npc);
 	Lua_Mob_List GetMobList();
 	Lua_Client_List GetClientList();
+	Lua_Client_List GetCloseClientList(float x, float y, float z, float distance);
 	Lua_Client_List GetShuffledClientList();
 	Lua_NPC_List GetNPCList();
 	Lua_Corpse_List GetCorpseList();
