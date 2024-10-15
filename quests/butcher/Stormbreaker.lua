@@ -5,13 +5,13 @@ end
 function event_timer(e)
     if (e.timer == "oot_boat_start") then
         eq.stop_timer("oot_boat_start")
-        eq.set_timer("oot_boat_warning", 240000) -- OOT boat every 5 minutes
+        eq.set_timer("oot_boat_warning", 20000) -- OOT boat every 5 minutes
     end
     if(e.timer == "oot_boat_warning") then
         local cl = eq.get_entity_list():GetCloseClientList(e.self:GetX(), e.self:GetY(), e.self:GetZ(), 2000);
         for client in cl.entries do
             if (client.valid) then
-                client:Message(MT.White, "Glorin Binfurr shouts \"The boat to Ocean of Tears is getting ready to leave! Hurry!\"");
+                client:Message(MT.White, "Glorin Binfurr shouts, \"The boat to Ocean of Tears is departing! Get here quick if you're traveling!\"");
             end
         end
         eq.stop_timer("oot_boat_warning")
@@ -19,8 +19,8 @@ function event_timer(e)
     end
     if(e.timer == "oot_boat_go") then
         eq.stop_timer("oot_boat_go")
-        eq.set_timer("oot_boat_warning", 240000)
-        local cl = eq.get_entity_list():GetCloseClientList(e.self:GetX(), e.self:GetY(), e.self:GetZ(), 100);
+        eq.set_timer("oot_boat_warning", 20000)
+        local cl = eq.get_entity_list():GetCloseClientList(e.self:GetX(), e.self:GetY(), e.self:GetZ(), 30);
         for client in cl.entries do
             if (client.valid) then 
                 client:MoveZone("oot", -9200, 275, 4);
