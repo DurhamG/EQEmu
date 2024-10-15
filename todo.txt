@@ -1,14 +1,4 @@
-Boat events
-- Add proximity quest for boats
-  - BB - OoT - FP  (SirensBane (771) || Stormbreaker (770))
-  - BB - TD  (Shuttle (68244))
-  - Oasis - TD Barrel_Barge (840)
-  - TD - FV (Maidens_Voyage (838))
-  - TD - OT (Bloated_Belly (839))
-  - NRo - Iceclad (Icebreaker)
-  - South Qeynos - Erud's Crossing - Erudin (Golden_Maiden (773) || Sea King (772)?)
-  - https://www.eqemulator.org/forums/showthread.php?t=41604
-  - https://www.eqemulator.org/forums/showthread.php?t=24242
+- Remove soulbinders
 
 Drop rates
 - Reduce max respawn time to 24 hours?
@@ -350,9 +340,30 @@ delete from items where `reqlevel` > 60;
 /* BB Stormbreak npc_type = 770, spawngroup = 222308, spawn = 368011 */
 update spawn2 set x = 3288, y = 1354, z = -15, pathgrid = 0, respawntime = 1, heading = 120, _condition = 0, enabled = 1 where spawngroupID = 222308;
 update npc_types set race = 73, gender = 0 where id = 770;
+/* Remove TD boat that is in the sea. */
+update spawn2 set enabled = 0 where id = 367975;
 
 /* Fix BB-TD shuttle heading */
 update spawn2 set heading = 127 where spawngroupID = 68244;
+
+/* OoT boats */
+
+
+
+
+Boat events
+- Add proximity quest for boats
+  x BB - OoT - FP  (SirensBane (771) || Stormbreaker (770))
+  x BB - TD  (Shuttle (68244))
+  x TD - FV (Maidens_Voyage (838))
+  - TD - OT (Bloated_Belly (839))
+  - Oasis - TD Barrel_Barge (840)
+  - NRo - Iceclad (Icebreaker)
+  - South Qeynos - Erud's Crossing - Erudin (Golden_Maiden (773) || Sea King (772)?)
+  - https://www.eqemulator.org/forums/showthread.php?t=41604
+  - https://www.eqemulator.org/forums/showthread.php?t=24242
+
+
 
 cd quests/
 find -name A_Mystic_Voice.lua -delete
