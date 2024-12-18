@@ -40,9 +40,66 @@ Operations
 
 
 
+Dev Setup:
+mkdir ~/eqemu
+cd ~/eqemu
+gh clone DurhamG/EQEmu source
+mkdir server
+mkdir server_build
+
+cd server_build
+cmake -G "Unix Makefiles" -DEQEMU_BUILD_LOGIN=ON ../source
+make -j 20
+
+cd ~/eqemu/server
+perl ../source/utils/scripts/eqemu_server.pl  new_server
+
+ln -f -s ~/eqemu/server_build/bin/eqlaunch eqlaunch
+ln -f -s ~/eqemu/server_build/bin/export_client_files export_client_files
+ln -f -s ~/eqemu/server_build/bin/import_client_files import_client_files 
+ln -f -s ~/eqemu/server_build/bin/libcommon.a libcommon.a 
+ln -f -s ~/eqemu/server_build/bin/libluabind.a libluabind.a 
+ln -f -s ~/eqemu/server_build/bin/loginserver loginserver 
+ln -f -s ~/eqemu/server_build/bin/queryserv queryserv 
+ln -f -s ~/eqemu/server_build/bin/shared_memory shared_memory 
+ln -f -s ~/eqemu/server_build/bin/ucs ucs 
+ln -f -s ~/eqemu/server_build/bin/world world
+ln -f -s ~/eqemu/server_build/bin/zone zone
 
 
-DB modifications:
+DB Setup:
+
+cd ~/eqemu
+mysql -u eqemu -p
+
+create database takp;
+use takp;
+source source/utils/sql/alkabor_2023-10-11-15_19/alkabor_2023-10-11-15:19.sql;
+
+create database peq;
+use peq;
+source source/utils/sql/peq-dump/create_tables_content.sql;
+source source/utils/sql/peq-dump/create_tables_login.sql;
+source source/utils/sql/peq-dump/create_tables_player.sql;
+source source/utils/sql/peq-dump/create_tables_queryserv.sql;
+source source/utils/sql/peq-dump/create_tables_state.sql;
+source source/utils/sql/peq-dump/create_tables_system.sql;
+
+
+create database eqemu;
+use eqemu;
+source source/utils/sql/peq-dump/create_tables_content.sql;
+source source/utils/sql/peq-dump/create_tables_login.sql;
+source source/utils/sql/peq-dump/create_tables_player.sql;
+source source/utils/sql/peq-dump/create_tables_queryserv.sql;
+source source/utils/sql/peq-dump/create_tables_state.sql;
+source source/utils/sql/peq-dump/create_tables_system.sql;
+
+
+
+
+
+/* DB modifications: */
 /* Convert to no-drop */
 update items set nodrop = 0 where tradeskills = 0;
 
@@ -275,13 +332,16 @@ update spawn2 set min_expansion = 3 where spawngroupID in (
 );
 
 /* Add translocators */
-insert into npc_types select * from peq.npc_types where peq.name like "%Translocator%";
+insert into npc_types select * from peq.npc_types where peq.npc_types.name like "%Translocator%";
 insert into spawngroup select * from peq.spawngroup where peq.spawngroup.id in (select peq.spawnentry.spawngroupID from peq.spawnentry where
     peq.spawnentry.npcID in (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%"));
 insert into spawnentry select * from peq.spawnentry where peq.spawnentry.npcID in
     (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%");
 insert into spawn2 select * from peq.spawn2 where peq.spawn2.spawngroupID in (select peq.spawnentry.spawngroupID from peq.spawnentry where
     peq.spawnentry.npcID in (select peq.npc_types.id from peq.npc_types where peq.npc_types.name like "%Translocator%"));
+
+
+
 
 cd quests/
 find -name A_Mystic_Voice.lua -delete
